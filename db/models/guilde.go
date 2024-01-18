@@ -5,37 +5,34 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type GuildeTable struct {
-	Uuid       uuid.UUID `db:"uuid" sql_properties:"UUID PRIMARY KEY"`
-	Name       string    `db:"name" sql_properties:"VARCHAR(255) NOT NULL"`
-	Img_url    string    `db:"img_url" sql_properties:"VARCHAR(255)"`
-	Page_url   string    `db:"page_url" sql_properties:"VARCHAR(255)"`
-	Created_at time.Time `db:"created_at" sql_properties:"TIMESTAMP NOT NULL"`
-	Updated_at time.Time `db:"updated_at" sql_properties:"TIMESTAMP NOT NULL"`
+	BaseModelTable
+	Name     string `db:"name" sql_properties:"VARCHAR(255) NOT NULL"`
+	Img_url  string `db:"img_url" sql_properties:"VARCHAR(255)"`
+	Page_url string `db:"page_url" sql_properties:"VARCHAR(255)"`
 }
 
-func (g GuildeTable) GetTag(fieldName string, tagName string) string {
+func (g GuildeTable) GetTag(fieldName string, tagName string) (string, error) {
 	t := reflect.TypeOf(g)
 	field, found := t.FieldByName(fieldName)
 	if !found {
-		return ""
-		//TODO: Error
+		return "", fmt.Errorf("field not found: %s", fieldName)
 	}
 	tag := field.Tag.Get(tagName)
-	return tag
+	return tag, nil
 }
 
 func (g GuildeTable) getDBColumnName(fieldName string) string {
-	return g.GetTag(fieldName, "db")
+	tag, _ := g.GetTag(fieldName, "db")
+	return tag
 }
 func (g GuildeTable) getDBColumnProperties(fieldName string) string {
-	return g.GetTag(fieldName, "sql_properties")
+	tag, _ := g.GetTag(fieldName, "sql_properties")
+	return tag
 }
 func (g GuildeTable) getTableName() string {
 	return "guildes"

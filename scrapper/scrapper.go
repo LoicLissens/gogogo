@@ -2,7 +2,7 @@ package scrapper
 
 import (
 	"fmt"
-	guilde "jiva-guildes/domain/guilde"
+	models "jiva-guildes/domain/models/guilde"
 	"jiva-guildes/settings"
 	"log"
 	"os"
@@ -32,10 +32,10 @@ func Scrap() interface{} {
 		println("No connection available for scrapping, try later...")
 		return nil
 	}
-	var guildes []guilde.Guilde
+	var guildes []models.Guilde
 	c := colly.NewCollector()
 	c.OnHTML(".ak-bg-odd", func(e *colly.HTMLElement) {
-		var g guilde.Guilde
+		var g models.Guilde
 		img_url := get_url_from_style(e.ChildAttr(".ak-emblem", "style"))
 		g_name := e.ChildText("td:nth-child(2)")
 		g_page := "https://www.dofus.com/" + e.ChildAttr("td:nth-child(2) > a", "href")

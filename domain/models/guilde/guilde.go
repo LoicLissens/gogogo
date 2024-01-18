@@ -1,4 +1,4 @@
-package guilde
+package models
 
 import (
 	"time"

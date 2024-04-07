@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
+	"jiva-guildes/backend/router"
 	"jiva-guildes/cli"
 	db "jiva-guildes/db/models"
 	"jiva-guildes/scrapper"
 )
 
 type Actions int
-type ActionFunction func() interface{}
+type ActionFunction func()
 
 const (
 	SCRAP Actions = iota
@@ -24,9 +25,11 @@ func main() {
 	actionMapper := map[string]ActionFunction{
 		SCRAP.ActionsEnum():   scrapper.Scrap,
 		INIT_DB.ActionsEnum(): db.InitAllTables,
+		SERVE.ActionsEnum():   router.Serve,
 	}
 	isCliMode := flag.Bool("cli", false, "Wether the module should be launched in CLI mode.")
 	flag.Parse()
+
 	if *isCliMode == true {
 		menu := cli.NewMenu("What do you want to do ?")
 		menu.AddItem("Scrapping of data", SCRAP.ActionsEnum())
@@ -36,5 +39,4 @@ func main() {
 		action := actionMapper[itemId]
 		action()
 	}
-
 }

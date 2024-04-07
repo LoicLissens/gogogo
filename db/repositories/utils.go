@@ -12,6 +12,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type Repository interface {
+	GetEntityByUuid(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string, schema string) (interface{}, error)
+}
+
 func GetEntityByUuid(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string, schema string) (interface{}, error) {
 	statement := `SELECT * FROM $1.$2 WHERE uuid = $3`
 	row := connectionPool.QueryRow(context.Background(), statement, schema, tableName, uuid)

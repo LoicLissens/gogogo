@@ -2,7 +2,7 @@ package scrapper
 
 import (
 	"fmt"
-	models "jiva-guildes/domain/models/guilde"
+	"jiva-guildes/domain/models/guilde"
 	"jiva-guildes/settings"
 	"log"
 	"os"
@@ -27,15 +27,15 @@ func get_url_from_style(url string) string {
 		return url
 	}
 }
-func Scrap() interface{} {
+func Scrap() {
 	if !connectionAvailable() {
 		println("No connection available for scrapping, try later...")
-		return nil
+		return
 	}
-	var guildes []models.Guilde
+	var guildes []guilde.Guilde
 	c := colly.NewCollector()
 	c.OnHTML(".ak-bg-odd", func(e *colly.HTMLElement) {
-		var g models.Guilde
+		var g guilde.Guilde
 		img_url := get_url_from_style(e.ChildAttr(".ak-emblem", "style"))
 		g_name := e.ChildText("td:nth-child(2)")
 		g_page := "https://www.dofus.com/" + e.ChildAttr("td:nth-child(2) > a", "href")
@@ -61,7 +61,5 @@ func Scrap() interface{} {
 		str_line := fmt.Sprintf("%s,%s,%s\n", v.Name, v.Img_url, v.Page_url)
 		file.WriteString(str_line)
 	}
-
 	file.Close()
-	return nil
 }

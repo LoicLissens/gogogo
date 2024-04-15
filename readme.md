@@ -5,3 +5,9 @@ docker run -d --name jiva-g -p 127.0.0.1:5432:5432 -e POSTGRES_USER=root -e POST
 go install github.com/cosmtrek/air@latest => live reload
 
 go install golang.org/x/tools/gopls@latest
+
+[text](https://templ.guide/) => idea of templating
+
+if issue with importing external package, run : go mod tidy
+
+Sanetisation et honeypot ?

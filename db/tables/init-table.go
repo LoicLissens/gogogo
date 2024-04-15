@@ -1,4 +1,4 @@
-package models
+package tables
 
 import (
 	"jiva-guildes/db"

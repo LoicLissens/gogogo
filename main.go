@@ -4,7 +4,7 @@ import (
 	"flag"
 	"jiva-guildes/backend/router"
 	"jiva-guildes/cli"
-	db "jiva-guildes/db/models"
+	tables "jiva-guildes/db/tables"
 	"jiva-guildes/scrapper"
 )
 
@@ -24,7 +24,7 @@ func (action Actions) ActionsEnum() string {
 func main() {
 	actionMapper := map[string]ActionFunction{
 		SCRAP.ActionsEnum():   scrapper.Scrap,
-		INIT_DB.ActionsEnum(): db.InitAllTables,
+		INIT_DB.ActionsEnum(): tables.InitAllTables,
 		SERVE.ActionsEnum():   router.Serve,
 	}
 	isCliMode := flag.Bool("cli", false, "Wether the module should be launched in CLI mode.")

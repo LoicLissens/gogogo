@@ -16,14 +16,14 @@ type Guilde struct {
 }
 
 func New(name string, img_url string, page_url string) *Guilde {
-	guilde := &Guilde{
+	return &Guilde{
+		BaseModel: models.BaseModel{
+			Uuid:       uuid.New(),
+			Created_at: time.Now().UTC(),
+			Updated_at: time.Now().UTC(),
+		},
 		Name:     name,
 		Img_url:  img_url,
 		Page_url: page_url,
 	}
-	guilde.Uuid = uuid.New()
-	guilde.Created_at = time.Now()
-	guilde.Updated_at = time.Now()
-
-	return guilde
 }

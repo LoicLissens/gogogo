@@ -2,17 +2,23 @@ package repositories
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"jiva-guildes/db/tables"
+	customerrors "jiva-guildes/domain/custom_errors"
+	"log"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository interface {
 	GetByUUID(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string, schema string) (interface{}, error)
 	Save(connectionPool *pgxpool.Pool, tableName string, schema string, entity interface{}) (interface{}, error)
+	ScanRow(row pgx.Row) (interface{}, error)
 }
 
 func GetEntityByUuid(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string) pgx.Row {
@@ -41,4 +47,37 @@ func SaveEntity(table tables.Table, conn *pgxpool.Pool) pgx.Row {
 	}
 	row := conn.QueryRow(context.Background(), statement, interfaceValues...)
 	return row
+}
+func DeleteEntity(tableName string, uuid uuid.UUID, conn *pgxpool.Pool) (int64, error) {
+	statement := fmt.Sprintf("DELETE FROM %s WHERE uuid = $1", tableName)
+	result, err := conn.Exec(context.Background(), statement, uuid)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), err
+}
+
+func HandleSQLErrors(err error, tableName string, uuid uuid.UUID) error {
+	if errors.Is(err, pgx.ErrNoRows) {
+		errorMessage := fmt.Sprintf("No entity with UUID %s found in table %s", uuid, tableName)
+		return customerrors.NewErrorNotFound(errorMessage)
+	}
+	if e, ok := err.(*pgconn.PgError); ok && e.Code == pgerrcode.UniqueViolation {
+		errorMessage := fmt.Sprintf("Entity with UUID %s already exists in table %s", uuid, tableName)
+		return customerrors.NewErrorAlreadyExists(errorMessage)
+	}
+	log.Fatal(err)
+	return err
+}
+
+func HandleSQLDelete(rowAffected int64, err error, tableName string, uuid uuid.UUID) error {
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+	if rowAffected == 0 {
+		errorMessage := fmt.Sprintf("No entity with UUID %s found in table %s", uuid, tableName)
+		return customerrors.NewErrorNotFound(errorMessage)
+	}
+	return nil
 }

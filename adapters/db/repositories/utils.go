@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"jiva-guildes/db/tables"
+	"jiva-guildes/adapters/db/tables"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"log"
 
@@ -14,12 +14,6 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
-
-type Repository interface {
-	GetByUUID(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string, schema string) (interface{}, error)
-	Save(connectionPool *pgxpool.Pool, tableName string, schema string, entity interface{}) (interface{}, error)
-	ScanRow(row pgx.Row) (interface{}, error)
-}
 
 func GetEntityByUuid(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string) pgx.Row {
 	statement := fmt.Sprintf("SELECT * FROM %s WHERE uuid = $1", tableName)

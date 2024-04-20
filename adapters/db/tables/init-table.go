@@ -1,7 +1,7 @@
 package tables
 
 import (
-	"jiva-guildes/db"
+	"jiva-guildes/adapters/db"
 )
 
 var allTables = []Table{&GuildeTable{}}

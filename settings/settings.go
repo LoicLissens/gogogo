@@ -12,7 +12,7 @@ import (
 const projectDireName string = "jiva-guildes"
 
 type Settings struct {
-	DATABASE_URL        string `env:"DATABASE_URL"`
+	DATABASE_URI        string `env:"DATABASE_URI"`
 	CSV_FILE_FROM_SCRAP string `env:"CSV_FILE_FROM_SCRAP"`
 	DATABASE_SCHEMA     string `env:"DATABASE_SCHEMA"`
 }

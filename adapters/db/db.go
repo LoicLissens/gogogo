@@ -3,14 +3,15 @@ package db
 import (
 	"context"
 	"fmt"
-	"jiva-guildes/settings"
+	"net/url"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func MountDB() *pgxpool.Pool {
-	dbpool, err := pgxpool.New(context.Background(), settings.AppSettings.DATABASE_URL)
+// To instanciate with  settings.AppSettings.DATABASE_URI
+func MountDB(databaseURI *url.URL) *pgxpool.Pool {
+	dbpool, err := pgxpool.New(context.Background(), databaseURI.Path)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)

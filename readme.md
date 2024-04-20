@@ -12,6 +12,8 @@ if issue with importing external package, run : go mod tidy
 
 Sanetisation et honeypot ?
 
+use cancelations the net  ninja tuto ? => gracefull shutdown
+
 use this const (
 	statusOk            = 200
 	statusCreated       = 201
@@ -32,3 +34,13 @@ use this const (
 	postMethod          = "POST"
 	deleteMethod        = "DELETE"
 )
+use https://github.com/mdempsky/maligned?ref=hackernoon.com (maligned) for perf issue ?
+
+Try to test with -race = go test -race
+
+organise project with cmd and internal
+
+https://www.reddit.com/r/golang/comments/1ad14so/i_used_reflection_and_i_feel_dirty/ => middleware in routing
+https://stackoverflow.com/questions/61704842/how-to-scan-a-queryrow-into-a-struct-with-pgx => improve row scanning
+
+https://github.com/go-playground/assert => to use for testing

@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"errors"
-	"jiva-guildes/db"
+	"jiva-guildes/adapters/db"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models"
 	"jiva-guildes/domain/models/guilde"

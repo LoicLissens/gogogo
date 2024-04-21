@@ -13,7 +13,7 @@ type UnitOfWork struct {
 	conn *pgxpool.Pool
 }
 
-func (uow UnitOfWork) GuildeRepository() *portrepo.GuildeRepository {
+func (uow UnitOfWork) GuildeRepository() portrepo.GuildeRepository {
 	if uow.conn == nil {
 		panic("Connection pool not set")
 	}
@@ -32,10 +32,10 @@ func (uowm *UnitOfWorkManager) Setup(connectionPool *pgxpool.Pool) {
 	uowm.conn = connectionPool
 }
 
-func (uowm *UnitOfWorkManager) Start() ports.UnitOfWork {
+func (uowm UnitOfWorkManager) Start() ports.UnitOfWork {
 	if uowm.conn == nil {
 		panic("Connection pool not set")
 	}
 	uow := UnitOfWork{conn: uowm.conn}
-	return uow
+	return &uow
 }

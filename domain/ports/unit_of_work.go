@@ -5,9 +5,9 @@ import (
 )
 
 type UnitOfWork interface {
-	GuildeRepository(connectionPool interface{}) *repositories.GuildeRepository
+	GuildeRepository() repositories.GuildeRepository
 }
 
 type UnitOfWorkManager interface {
-	Start() *UnitOfWork
+	Start() UnitOfWork
 }

@@ -7,6 +7,6 @@ import (
 )
 
 type GuildeRepository interface {
-	GetByUUID(connectionPool interface{}, uuid uuid.UUID, tableName string, schema string) (guilde.Guilde, error)
-	Save(connectionPool interface{}, tableName string, schema string, entity interface{}) (guilde.Guilde, error)
+	GetByUUID(uuid uuid.UUID) (guilde.Guilde, error)
+	Save(guilde.Guilde) (guilde.Guilde, error)
 }

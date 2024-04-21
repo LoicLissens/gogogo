@@ -3,15 +3,14 @@ package db
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// To instanciate with  settings.AppSettings.DATABASE_URI
-func MountDB(databaseURI *url.URL) *pgxpool.Pool {
-	dbpool, err := pgxpool.New(context.Background(), databaseURI.Path)
+func MountDB(databaseURI string) *pgxpool.Pool {
+	println(databaseURI)
+	dbpool, err := pgxpool.New(context.Background(), databaseURI)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
 		os.Exit(1)

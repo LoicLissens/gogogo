@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
+	tables "jiva-guildes/adapters/db/tables"
 	"jiva-guildes/backend/router"
 	"jiva-guildes/cli"
-	tables "jiva-guildes/db/tables"
 	"jiva-guildes/scrapper"
 )
 
@@ -38,5 +38,7 @@ func main() {
 		itemId := menu.Draw_prompt()
 		action := actionMapper[itemId]
 		action()
+	} else {
+		router.Serve()
 	}
 }

@@ -3,13 +3,15 @@ package backend
 import (
 	"jiva-guildes/adapters"
 	"jiva-guildes/adapters/db"
-	"jiva-guildes/domain/ports"
+	"jiva-guildes/domain/ports/views"
+	"jiva-guildes/services"
 	"jiva-guildes/settings"
-	"net/url"
 )
 
-var path, _ = url.Parse(settings.AppSettings.DATABASE_URI)
-var connectionPool = db.MountDB(path)
+var connectionPool = db.MountDB(settings.AppSettings.DATABASE_URI)
 
 var UnitOfWorkManager = adapters.NewUnitOfWorkManager(connectionPool)
-var ServiceManager = ports.ServiceManager{UnitOfWorkManager: &UnitOfWorkManager}
+
+var ServiceManager = services.ServiceManager{UnitOfWorkManager: &UnitOfWorkManager}
+
+var viewsManager views.ViewsManager

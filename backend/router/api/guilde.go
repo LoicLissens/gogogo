@@ -1,6 +1,8 @@
 package api
 
 import (
+	"jiva-guildes/backend"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -26,5 +28,7 @@ func getGuilde(c echo.Context) error {
 }
 
 func createGuilde(c echo.Context) error {
-	return nil
+	guilde := backend.ServiceManager.CreateGuildeHandler()
+	println(guilde.Name)
+	return c.String(200, guilde.Uuid.String())
 }

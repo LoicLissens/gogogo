@@ -9,7 +9,6 @@ import (
 )
 
 func MountDB(databaseURI string) *pgxpool.Pool {
-	println(databaseURI)
 	dbpool, err := pgxpool.New(context.Background(), databaseURI)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)

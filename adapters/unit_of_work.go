@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// TODO: Add a unit o f work manager with logic to decide which type of UOW to return (eg: one with redis ...)
 type UnitOfWork struct {
 	conn *pgxpool.Pool
 }

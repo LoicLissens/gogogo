@@ -40,7 +40,7 @@ func getGuilde(c echo.Context) error {
 
 func createGuilde(c echo.Context) error {
 	g := new(GuildeInput)
-	if err := c.Bind(g); err != nil { //TODO Maybe create an utility function to bind/validate(/return a cmd) to use in every request
+	if err := c.Bind(g); err != nil {
 		return echo.NewHTTPError(utils.StatusBadRequest, "Failed to parse request body")
 	}
 	cmd := commands.CreateGuildeCommand{

@@ -6,6 +6,8 @@ import (
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models"
 	"jiva-guildes/domain/models/guilde"
+	"jiva-guildes/settings"
+
 	"reflect"
 	"testing"
 	"time"
@@ -15,7 +17,7 @@ import (
 
 // TODO Try to close the connection at the end of all tests
 func TestGetSaveRepository(t *testing.T) {
-	pool := db.MountDB()
+	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
 	defer db.Teardown(pool)
 	var repo GuildeRepository = GuildeRepository{conn: pool}
 
@@ -70,7 +72,7 @@ func TestGetSaveRepository(t *testing.T) {
 
 func TestGetNotfound(t *testing.T) {
 	var expectedError customerrors.ErrorNotFound
-	pool := db.MountDB()
+	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
 	defer db.Teardown(pool)
 	var repo GuildeRepository = GuildeRepository{conn: pool}
 	_, err := repo.GetByUUID(uuid.New())
@@ -84,7 +86,7 @@ func TestGetNotfound(t *testing.T) {
 
 func TestSaveDuplicated(t *testing.T) {
 	var expectedError customerrors.ErrorAlreadyExists
-	pool := db.MountDB()
+	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
 	defer db.Teardown(pool)
 	var repo GuildeRepository = GuildeRepository{conn: pool}
 
@@ -112,7 +114,7 @@ func TestSaveDuplicated(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	pool := db.MountDB()
+	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
 	defer db.Teardown(pool)
 	var repo GuildeRepository = GuildeRepository{conn: pool}
 

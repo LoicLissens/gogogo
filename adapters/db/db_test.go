@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"jiva-guildes/settings"
 )
 
 func TestDBConnection(t *testing.T) {
-	pool := MountDB()
+	pool := MountDB(settings.AppSettings.DATABASE_URI)
 	defer pool.Close()
 
 	// Define test data

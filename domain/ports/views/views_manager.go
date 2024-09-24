@@ -1,3 +1,5 @@
 package views
 
-type ViewsManager interface{}
+type ViewsManager interface {
+	Guilde() GuildeView
+}

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func Serve() {
+func Serve() { //TODO call teardown in case of crash or shutdown
 	e := echo.New()
 	api.InitGuildeApiRoutes(e)
 	e.GET("/", func(c echo.Context) error {

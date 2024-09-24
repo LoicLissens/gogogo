@@ -14,9 +14,11 @@ type GuildeInput struct {
 	Page_url string `json:"page_url" form:"page_url" query:"page_url"`
 }
 
+var ServiceManager = backend.ServiceManager
+
 // HandleInput is a function that binds the request body to the data struct, validates it
 // and instanciate a command. Should always be used for POST requests.
-func HandleInput(c echo.Context, data interface{}) error {
+func HandleInput(c echo.Context, data interface{}) error { //TODO use it
 	if err := c.Bind(data); err != nil { //TODO Maybe create an utility function to bind/validate(/return a cmd) to use in every request
 		return echo.NewHTTPError(utils.StatusBadRequest, "Failed to parse request body")
 	}
@@ -52,7 +54,7 @@ func createGuilde(c echo.Context) error {
 	if err := backend.Validate.Struct(cmd); err != nil {
 		return echo.NewHTTPError(utils.StatusUnprocessable, err.Error())
 	}
-	guilde, err := backend.ServiceManager.CreateGuildeHandler(cmd)
+	guilde, err := ServiceManager.CreateGuildeHandler(cmd)
 	if err != nil {
 		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
 		return echo.NewHTTPError(code, message)

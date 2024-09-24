@@ -4,6 +4,7 @@ import (
 	"flag"
 	tables "jiva-guildes/adapters/db/tables"
 	"jiva-guildes/backend/router"
+	"jiva-guildes/backend/scripts"
 	"jiva-guildes/cli"
 	"jiva-guildes/scrapper"
 )
@@ -15,27 +16,30 @@ const (
 	SCRAP Actions = iota
 	SERVE
 	INIT_DB
+	POPULATE_FROM_CSV
 )
 
 func (action Actions) ActionsEnum() string {
-	return []string{"SCRAP", "SERVE", "INIT_DB"}[action]
+	return []string{"SCRAP", "SERVE", "INIT_DB", "POPULATE_FROM_CSV"}[action]
 }
 
 func main() {
 	actionMapper := map[string]ActionFunction{
-		SCRAP.ActionsEnum():   scrapper.Scrap,
-		INIT_DB.ActionsEnum(): tables.InitAllTables,
-		SERVE.ActionsEnum():   router.Serve,
+		SCRAP.ActionsEnum():             scrapper.Scrap,
+		INIT_DB.ActionsEnum():           tables.InitAllTables,
+		SERVE.ActionsEnum():             router.Serve,
+		POPULATE_FROM_CSV.ActionsEnum(): scripts.PopulateDBFromCSV,
 	}
 	isCliMode := flag.Bool("cli", false, "Wether the module should be launched in CLI mode.")
 	flag.Parse()
 
-	if *isCliMode == true {
+	if *isCliMode {
 		menu := cli.NewMenu("What do you want to do ?")
-		menu.AddItem("Scrapping of data", SCRAP.ActionsEnum())
 		menu.AddItem("Init database", INIT_DB.ActionsEnum())
+		menu.AddItem("Scrapping of data", SCRAP.ActionsEnum())
 		menu.AddItem("Serve", SERVE.ActionsEnum())
-		itemId := menu.Draw_prompt()
+		menu.AddItem("Populate from CSV", POPULATE_FROM_CSV.ActionsEnum())
+		itemId := menu.Display()
 		action := actionMapper[itemId]
 		action()
 	} else {

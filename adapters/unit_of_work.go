@@ -27,7 +27,7 @@ type UnitOfWorkManager struct {
 func NewUnitOfWorkManager(connectionPool *pgxpool.Pool) UnitOfWorkManager {
 	return UnitOfWorkManager{conn: connectionPool}
 }
-func (uowm *UnitOfWorkManager) Setup(connectionPool *pgxpool.Pool) {
+func (uowm *UnitOfWorkManager) Setup(connectionPool *pgxpool.Pool) { //TODO: Use it when start and shutdown event are implemented
 	uowm.conn = connectionPool
 }
 

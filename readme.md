@@ -4,6 +4,11 @@ Run with hot reloading wit *air*:
 - if not implemented: `air init`
 - launch with: `air`
 
+Run with cli :
+`go run . -cli`
+
+Run tests:
+cd in the directory `go test .` eg fromthe adapters : ` go test ./db/repositories`
 
 Use a PostgresQL docker containet for the DB:
 

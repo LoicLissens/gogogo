@@ -7,6 +7,6 @@ import (
 )
 
 type GuildeView interface {
-	Fetch(uuid uuid.UUID) dtos.GuildeViewDTO
-	List(page int, limit int)
+	Fetch(uuid uuid.UUID) (dtos.GuildeViewDTO, error)
+	List(page int, limit int) (dtos.GuildeListViewDTO, error)
 }

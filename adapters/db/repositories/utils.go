@@ -2,16 +2,13 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"jiva-guildes/adapters/db/tables"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -49,19 +46,6 @@ func DeleteEntity(tableName string, uuid uuid.UUID, conn *pgxpool.Pool) (int64, 
 		return 0, err
 	}
 	return result.RowsAffected(), err
-}
-
-func HandleSQLErrors(err error, tableName string, uuid uuid.UUID) error {
-	if errors.Is(err, pgx.ErrNoRows) {
-		errorMessage := fmt.Sprintf("No entity with UUID %s found in table %s", uuid, tableName)
-		return customerrors.NewErrorNotFound(errorMessage)
-	}
-	if e, ok := err.(*pgconn.PgError); ok && e.Code == pgerrcode.UniqueViolation {
-		errorMessage := fmt.Sprintf("Entity with UUID %s already exists in table %s", uuid, tableName)
-		return customerrors.NewErrorAlreadyExists(errorMessage)
-	}
-	log.Fatal(err)
-	return err
 }
 
 func HandleSQLDelete(rowAffected int64, err error, tableName string, uuid uuid.UUID) error {

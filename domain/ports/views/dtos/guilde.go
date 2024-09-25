@@ -14,3 +14,7 @@ type GuildeViewDTO struct {
 	Created_at time.Time `json:"createdAt" validate:"required"`
 	Updated_at time.Time `json:"updatedAt" validate:"required"`
 }
+type GuildeListViewDTO struct {
+	Items   []GuildeViewDTO
+	NbItems int
+}

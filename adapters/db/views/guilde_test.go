@@ -2,8 +2,10 @@ package views
 
 import (
 	"errors"
+	"fmt"
 	"jiva-guildes/adapters"
 	"jiva-guildes/adapters/db"
+	"jiva-guildes/adapters/db/tables"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models/guilde"
 	"jiva-guildes/domain/ports"
@@ -20,12 +22,15 @@ import (
 // TODO Try to use test suite (see:https://medium.com/nerd-for-tech/setup-and-teardown-unit-test-in-go-bd6fa1b785cd)
 
 func setupTest(tb testing.TB) (ports.UnitOfWork, views.ViewsManager, func(tb testing.TB)) {
+	tables.InitAllTables()
+
 	var connectionPool = db.MountDB(settings.AppSettings.DATABASE_URI)
 	var UnitOfWorkManager = adapters.NewUnitOfWorkManager(connectionPool)
 	uow := UnitOfWorkManager.Start()
 	var ViewsManager = NewViewsManager(connectionPool)
 
 	return uow, ViewsManager, func(tb testing.TB) {
+		tables.DropAllTables()
 		db.Teardown(connectionPool)
 	}
 }
@@ -81,5 +86,40 @@ func TestFetchGuildeNotFound(t *testing.T) {
 	}
 	if err != nil && !errors.As(err, &expectedError) {
 		t.Fatal("Expected ErrorNotFound, got", reflect.TypeOf(err))
+	}
+}
+func TestListGuildes(t *testing.T) {
+	uow, ViewsManager, teardownTest := setupTest(t)
+	defer teardownTest(t)
+	samples := []map[string]string{
+		{"name": "Gunit", "url": "url", "img": "img"},
+		{"name": "D12", "url": "url2", "img": "img2"},
+		{"name": "Neptuns", "url": "url3", "img": "img3"},
+	}
+	for _, sample := range samples {
+		createGuilde(uow, sample["name"], sample[""], "https://www.google.com")
+	}
+	fetchedGuildes, err := ViewsManager.Guilde().List(1, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reflect.TypeOf(fetchedGuildes) != reflect.TypeOf(dtos.GuildeListViewDTO{}) {
+		t.Fatalf("Expected %s, got %s", reflect.TypeOf(dtos.GuildeListViewDTO{}), reflect.TypeOf(fetchedGuildes))
+	}
+	guildes := fetchedGuildes.Items
+	fmt.Printf("%v\n", guildes)
+	if len(guildes) != len(samples) {
+		t.Fatalf("Expected %d, got %d", 4, len(guildes))
+	}
+	for i, guilde := range guildes {
+		if guilde.Name != samples[i]["name"] {
+			t.Fatalf("Expected %s, got %s", samples[i]["name"], guilde.Name)
+		}
+		if guilde.Img_url != samples[i]["img"] {
+			t.Fatalf("Expected %s, got %s", samples[i]["img"], guilde.Img_url)
+		}
+		if guilde.Page_url != samples[i]["url"] {
+			t.Fatalf("Expected %s, got %s", samples[i]["url"], guilde.Page_url)
+		}
 	}
 }

@@ -15,6 +15,7 @@ import (
 type Table interface {
 	GetTableName() string
 	CreateTable(conn *pgxpool.Pool)
+	DropTable(conn *pgxpool.Pool)
 }
 
 type BaseModelTable struct {
@@ -71,8 +72,17 @@ func CreateTable(conn *pgxpool.Pool, table Table) {
 	}
 	log.Printf("%s table was added.", tableName)
 }
+func DropTable(conn *pgxpool.Pool, table Table) {
+	tableName := table.GetTableName()
+	statement := fmt.Sprintf("DROP TABLE IF EXISTS %s;", tableName)
+	_, err := conn.Exec(context.Background(), statement)
+	if err != nil {
+		log.Fatalf("Error while dropping table %s: %v", tableName, err)
+	}
+	log.Printf("%s table was dropped.", tableName)
+}
 
-func DeepFields(iface interface{}) ([]reflect.StructField, []reflect.Value) { //TODO: move in more utils place
+func DeepFields(iface interface{}) ([]reflect.StructField, []reflect.Value) {
 	fields := make([]reflect.StructField, 0)
 	values := make([]reflect.Value, 0)
 	ifv := reflect.ValueOf(iface)

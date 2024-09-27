@@ -3,7 +3,8 @@ package backend
 import (
 	"jiva-guildes/adapters"
 	"jiva-guildes/adapters/db"
-	"jiva-guildes/domain/ports/views"
+	"jiva-guildes/adapters/db/views"
+	portViews "jiva-guildes/domain/ports/views"
 	"jiva-guildes/services"
 	"jiva-guildes/settings"
 
@@ -16,6 +17,6 @@ var UnitOfWorkManager = adapters.NewUnitOfWorkManager(connectionPool)
 
 var ServiceManager = services.ServiceManager{UnitOfWorkManager: &UnitOfWorkManager}
 
-var viewsManager views.ViewsManager
+var ViewsManager portViews.ViewsManager = views.NewViewsManager(connectionPool)
 
 var Validate *validator.Validate = validator.New()

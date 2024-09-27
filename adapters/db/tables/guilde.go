@@ -20,7 +20,9 @@ func (table GuildeTable) GetTableName() string {
 func (table GuildeTable) CreateTable(conn *pgxpool.Pool) {
 	CreateTable(conn, table)
 }
-
+func (table GuildeTable) DropTable(conn *pgxpool.Pool) {
+	DropTable(conn, table)
+}
 func NewGuildeTable(name, img_url, page_url string, Uuid uuid.UUID, Created_at, Updated_at time.Time) GuildeTable {
 	return GuildeTable{
 		BaseModelTable: BaseModelTable{

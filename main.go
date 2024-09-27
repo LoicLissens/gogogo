@@ -17,10 +17,11 @@ const (
 	SERVE
 	INIT_DB
 	POPULATE_FROM_CSV
+	MANAGE
 )
 
 func (action Actions) ActionsEnum() string {
-	return []string{"SCRAP", "SERVE", "INIT_DB", "POPULATE_FROM_CSV"}[action]
+	return []string{"SCRAP", "SERVE", "INIT_DB", "POPULATE_FROM_CSV", "MANAGE"}[action]
 }
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 		INIT_DB.ActionsEnum():           tables.InitAllTables,
 		SERVE.ActionsEnum():             router.Serve,
 		POPULATE_FROM_CSV.ActionsEnum(): scripts.PopulateDBFromCSV,
+		MANAGE.ActionsEnum():            cli.Manage,
 	}
 	isCliMode := flag.Bool("cli", false, "Wether the module should be launched in CLI mode.")
 	flag.Parse()
@@ -39,6 +41,7 @@ func main() {
 		menu.AddItem("Scrapping of data", SCRAP.ActionsEnum())
 		menu.AddItem("Serve", SERVE.ActionsEnum())
 		menu.AddItem("Populate from CSV", POPULATE_FROM_CSV.ActionsEnum())
+		menu.AddItem("Manage", MANAGE.ActionsEnum())
 		itemId := menu.Display()
 		action := actionMapper[itemId]
 		action()

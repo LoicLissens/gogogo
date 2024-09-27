@@ -14,3 +14,10 @@ func InitAllTables() {
 	}
 	db.Teardown(connectionPool)
 }
+func DropAllTables() {
+	connectionPool := db.MountDB(settings.AppSettings.DATABASE_URI)
+	for _, val := range allTables {
+		val.DropTable(connectionPool)
+	}
+	db.Teardown(connectionPool)
+}

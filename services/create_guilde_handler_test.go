@@ -1,28 +1,14 @@
 package services
 
 import (
-	"jiva-guildes/adapters"
-	"jiva-guildes/adapters/db"
 	"jiva-guildes/domain/commands"
-	"jiva-guildes/settings"
 	"testing"
 
 	"github.com/google/uuid"
 )
 
-// TODO Try to use test suite (see:https://medium.com/nerd-for-tech/setup-and-teardown-unit-test-in-go-bd6fa1b785cd)
-
-func setupTest(tb testing.TB) (ServiceManager, func(tb testing.TB)) {
-	var connectionPool = db.MountDB(settings.AppSettings.DATABASE_URI)
-	var UnitOfWorkManager = adapters.NewUnitOfWorkManager(connectionPool)
-	var TestServiceManager = ServiceManager{UnitOfWorkManager: &UnitOfWorkManager}
-
-	return TestServiceManager, func(tb testing.TB) {
-		db.Teardown(connectionPool)
-	}
-}
 func TestCreateGuildeHandler(t *testing.T) {
-	TestServiceManager, teardownTest := setupTest(t)
+	TestServiceManager, teardownTest := SetupTest(t)
 	defer teardownTest(t)
 
 	cmd := commands.CreateGuildeCommand{

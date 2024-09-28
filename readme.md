@@ -16,3 +16,7 @@ Use a PostgresQL docker containet for the DB:
 
 If issue with importing external package, run : `go mod tidy`
 
+To make a copy of the DB run :
+`docker exec -i container-name /bin/bash -c "PGPASSWORD=pass pg_dump --username username dbname" > dump.sql`
+Then to reaply a copy to the db :
+`docker exec -i container-name /bin/bash -c "PGPASSWORD=pass psql --username username dbname" < dump.sql`

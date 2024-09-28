@@ -31,6 +31,8 @@ func (gv GuildeView) Fetch(uuid uuid.UUID) (dtos.GuildeViewDTO, error) {
 	}
 	return dto, nil
 }
+
+// TODO: add ordering (asc et desc) and filtering
 func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) { //TODO: Will need to add additional check for pagination to add in utils method
 	whereClause := "" // For later use /!\ adapt the $ sign of the statement to match the correct query parameter
 	params := []interface{}{}

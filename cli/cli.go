@@ -15,6 +15,7 @@ const (
 	CREATE_GUILDE = "CREATE_GUILDE"
 	NEXT_PAGE     = "NEXT_PAGE"
 	PREV_PAGE     = "PREV_PAGE"
+	QUIT          = "QUIT"
 )
 
 func Manage() {
@@ -38,17 +39,20 @@ func browseGuildes(page int) {
 	}
 	items, nbItems := guildesListDTO.Items, guildesListDTO.NbItems
 	menu := NewMenu("Total guilde: " + fmt.Sprint(nbItems))
-	menu.AddItem("⬅︎ Previous page", PREV_PAGE)
+	menu.AddItem(goterm.Color("⬅︎ Previous page", goterm.MAGENTA), PREV_PAGE)
 	for _, guilde := range items {
 		menu.AddItem(guilde.Name, guilde.Uuid.String())
 	}
-	menu.AddItem("Next page ⮕", NEXT_PAGE)
+	menu.AddItem(goterm.Color("Next page ⮕", goterm.MAGENTA), NEXT_PAGE)
+	menu.AddItem(goterm.Color("Quit", goterm.RED), QUIT)
 	itemId := menu.Display()
 	switch itemId {
 	case NEXT_PAGE:
 		browseGuildes(page + 1)
 	case PREV_PAGE:
 		browseGuildes(page - 1)
+	case QUIT:
+		return
 	default:
 		manageGuilde(findGuilde(items, itemId))
 	}

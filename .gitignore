@@ -1,3 +1,4 @@
 .env
 /tmp
 dump.sql
+.DS_Store

@@ -1,3 +1,4 @@
+// FORKED FROM : https://github.com/Nexidian/gocliselectc
 package cli
 
 import (
@@ -9,10 +10,14 @@ import (
 )
 
 // Raw input keycodes
-var up byte = 65
-var down byte = 66
-var escape byte = 27
-var enter byte = 13
+// Escape code list : https://www.climagic.org/mirrors/VT100_Escape_Codes.html
+
+var (
+	up     byte = 65
+	down   byte = 66
+	escape byte = 27
+	enter  byte = 13
+)
 var keys = map[byte]bool{
 	up:   true,
 	down: true,
@@ -93,10 +98,11 @@ func (m *Menu) Display() string {
 
 	// Turn the terminal cursor off
 	fmt.Printf("\033[?25l")
-
-	for {
+	//TODO: could turn into switch statement
+	for { //awaiting for user interaction
 		keyCode := getInput()
 		if keyCode == escape {
+			println("Exit the application...")
 			return ""
 		} else if keyCode == enter {
 			menuItem := m.MenuItems[m.CursorPos]
@@ -115,7 +121,7 @@ func (m *Menu) Display() string {
 // getInput will read raw input from the terminal
 // It returns the raw ASCII value inputted
 func getInput() byte {
-	t, _ := term.Open("/dev/tty")
+	t, _ := term.Open("/dev/tty") // Open a tty session in raw mode
 
 	err := term.RawMode(t)
 	if err != nil {
@@ -133,6 +139,7 @@ func getInput() byte {
 	// The third byte is the key specific value we are looking for.
 	// For example the left arrow key is '<esc>[A' while the right is '<esc>[C'
 	// See: https://en.wikipedia.org/wiki/ANSI_escape_code
+	// A ctrl key (up,down,lef,right) is 3 bytes length and the specific key is in the third byte.
 	if read == 3 {
 		if _, ok := keys[readBytes[2]]; ok {
 			return readBytes[2]

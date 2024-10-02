@@ -163,3 +163,34 @@ func TestDelete(t *testing.T) {
 		t.Fatal("Expected ErrorNotFound, got", reflect.TypeOf(err))
 	}
 }
+
+func TestUpdate(t *testing.T) {
+	repo, teardownTest := setupTest(t)
+	defer teardownTest(t)
+	creationDate := time.Now().UTC()
+	entity, err := guilde.New(guilde.GuildeOptions{Name: "Test", Img_url: "img", Page_url: "page", Exists: true, Validated: false, Active: nil, Creation_date: &creationDate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	savedEntity, err := repo.Save(*entity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	active := true
+	savedEntity.Validated = true
+	savedEntity.Active = &active
+	savedEntity.Creation_date = nil
+	updatedEntity, err := repo.Update(savedEntity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !updatedEntity.Validated {
+		t.Fatal("Expected validated to be true, got false")
+	}
+	if *updatedEntity.Active != true {
+		t.Fatal("Expected active to be true, got ", *updatedEntity.Active)
+	}
+	if updatedEntity.Creation_date != nil {
+		t.Fatal("Expected creation date to be nil, got ", updatedEntity.Creation_date)
+	}
+}

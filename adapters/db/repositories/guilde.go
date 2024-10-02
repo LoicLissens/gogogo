@@ -53,3 +53,14 @@ func (repository *GuildeRepository) ScanRow(row pgx.Row) (guilde.Guilde, error) 
 	}
 	return entity, nil
 }
+func (repository *GuildeRepository) Update(entity guilde.Guilde) (guilde.Guilde, error) {
+	table := tables.NewGuildeTable(entity)
+
+	updatedentity, err := repository.ScanRow(UpdateEntity(table, repository.conn, entity.Uuid))
+
+	if err != nil {
+		return updatedentity, fmt.Errorf("error while updated entity %w", db.HandleSQLErrors(err, tableName, entity.Uuid))
+	}
+
+	return updatedentity, err
+}

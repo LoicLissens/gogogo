@@ -28,7 +28,7 @@ func SaveEntity(table tables.Table, conn *pgxpool.Pool) pgx.Row {
 			fields += ", "
 			fieldsPosition += ", "
 		}
-		fields += fmt.Sprintf("%s", tables.GetDBColumnName(field.Name, table))
+		fields += tables.GetDBColumnName(field.Name, table) // Remove fmt.Sprintf
 		fieldsPosition += fmt.Sprintf("$%d", i+1)
 	}
 	statement := fmt.Sprintf(`INSERT INTO %s(%s) VALUES(%s) RETURNING *;`, table.GetTableName(), fields, fieldsPosition)
@@ -58,4 +58,23 @@ func HandleSQLDelete(rowAffected int64, err error, tableName string, uuid uuid.U
 		return customerrors.NewErrorNotFound(errorMessage)
 	}
 	return nil
+}
+
+func UpdateEntity(table tables.Table, conn *pgxpool.Pool, uuid uuid.UUID) pgx.Row {
+	tableFields, values := tables.DeepFields(table)
+	fields := ""
+	for i, field := range tableFields {
+		if i != 0 {
+			fields += ", "
+		}
+		fields += fmt.Sprintf("%s = $%d", tables.GetDBColumnName(field.Name, table), i+2)
+	}
+	statement := fmt.Sprintf(`UPDATE %s SET %s WHERE uuid = $1 RETURNING *;`, table.GetTableName(), fields)
+	interfaceValues := make([]interface{}, len(values)+1)
+	interfaceValues[0] = uuid
+	for i, v := range values {
+		interfaceValues[i+1] = v.Interface()
+	}
+	row := conn.QueryRow(context.Background(), statement, interfaceValues...)
+	return row
 }

@@ -6,9 +6,13 @@ import (
 )
 
 func (sm ServiceManager) CreateGuildeHandler(cmd commands.CreateGuildeCommand) (guilde.Guilde, error) {
-	guilde := guilde.New(cmd.Name, cmd.Img_url, cmd.Page_url)
+	validated := true // TODO: change regarding who create it
+	g, err := guilde.CreateFromCommand(cmd, validated)
+	if err != nil {
+		return guilde.Guilde{}, err
+	}
 	uow := sm.UnitOfWorkManager.Start()
-	savedGuilde, err := uow.GuildeRepository().Save(*guilde)
+	savedGuilde, err := uow.GuildeRepository().Save(*g)
 	if err != nil {
 		// uow.Rollback() //todo: implement rollback
 		return savedGuilde, err

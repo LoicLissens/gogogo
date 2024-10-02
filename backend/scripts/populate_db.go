@@ -31,7 +31,11 @@ func PopulateDBFromCSV() {
 	i := 0
 	fmt.Println("Inserting records...")
 	for _, record := range records {
-		g := guilde.New(record[0], record[1], record[2])
+		opts := guilde.GuildeOptions{Name: record[0], Img_url: record[1], Page_url: record[2], Exists: true, Validated: true, Active: nil, Creation_date: nil}
+		g, err := guilde.New(opts)
+		if err != nil {
+			panic(err)
+		}
 		repo.Save(*g) // may need bulk insert later
 		i++
 	}

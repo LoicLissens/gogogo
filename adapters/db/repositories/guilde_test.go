@@ -2,7 +2,9 @@ package repositories
 
 import (
 	"errors"
+	"fmt"
 	"jiva-guildes/adapters/db"
+	"jiva-guildes/adapters/db/tables"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models"
 	"jiva-guildes/domain/models/guilde"
@@ -15,19 +17,25 @@ import (
 )
 
 func setupTest(tb testing.TB) (GuildeRepository, func(tb testing.TB)) {
+	tables.InitAllTables()
 	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
 	var repo GuildeRepository = GuildeRepository{conn: pool}
 	return repo, func(tb testing.TB) {
+		tables.DropAllTables()
 		db.Teardown(pool)
 	}
 }
 func TestGetSaveRepository(t *testing.T) {
 	repo, teardownTest := setupTest(t)
 	defer teardownTest(t)
-	entity := guilde.New("Test", "test", "test")
+	opts := guilde.GuildeOptions{Name: "Test", Page_url: "url", Exists: true, Validated: true, Active: nil, Creation_date: nil}
+	entity, err := guilde.New(opts)
+	if err != nil {
+		t.Error(fmt.Errorf("Error creating entity: %w", err))
+	}
 	savedEntity, err := repo.Save(*entity)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal(fmt.Errorf("Error saving entity: %w", err))
 	}
 	if savedEntity.Name != entity.Name {
 		t.Fatalf("Expected %s, got %s", entity.Name, savedEntity.Name)
@@ -47,9 +55,19 @@ func TestGetSaveRepository(t *testing.T) {
 	if savedEntity.Updated_at != entity.Updated_at {
 		t.Fatalf("Expected %s, got %s", entity.Updated_at, savedEntity.Updated_at)
 	}
+	if savedEntity.Exists != entity.Exists {
+		t.Fatalf("Expected %t, got %t", entity.Exists, savedEntity.Exists)
+
+	}
+	if savedEntity.Validated != entity.Validated {
+		t.Fatalf("Expected %t, got %t", entity.Validated, savedEntity.Validated)
+	}
+
+	if savedEntity.Active != entity.Active {
+		t.Fatalf("Expected %t, got %t", *entity.Active, *savedEntity.Active)
+	}
 
 	fetchedEntity, error := repo.GetByUUID(entity.Uuid)
-
 	if error != nil {
 		t.Fatal(error)
 	}
@@ -75,9 +93,8 @@ func TestGetSaveRepository(t *testing.T) {
 
 func TestGetNotfound(t *testing.T) {
 	var expectedError customerrors.ErrorNotFound
-	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
-	defer db.Teardown(pool)
-	var repo GuildeRepository = GuildeRepository{conn: pool}
+	repo, teardownTest := setupTest(t)
+	defer teardownTest(t)
 	_, err := repo.GetByUUID(uuid.New())
 	if err == nil {
 		t.Fatal("Expected error, got nil")
@@ -91,13 +108,17 @@ func TestSaveDuplicated(t *testing.T) {
 	var expectedError customerrors.ErrorAlreadyExists
 	repo, teardownTest := setupTest(t)
 	defer teardownTest(t)
-
-	entity := guilde.New("Test", "test", "test")
+	creationDate := time.Now().UTC()
+	entity, err := guilde.New(guilde.GuildeOptions{Name: "Test", Img_url: "img", Page_url: "page", Exists: true, Validated: true, Active: nil, Creation_date: &creationDate})
+	if err != nil {
+		t.Fatal(err)
+	}
 	savedEntity, err := repo.Save(*entity)
 	if err != nil {
 		t.Fatal(err)
 	}
 	duplicatedUuid := savedEntity.Uuid
+
 	_, duplictedErr := repo.Save(guilde.Guilde{
 		Name:     "TestDup",
 		Img_url:  "test",
@@ -107,6 +128,7 @@ func TestSaveDuplicated(t *testing.T) {
 			Created_at: time.Now().UTC(),
 			Updated_at: time.Now().UTC(),
 		}})
+
 	if duplictedErr == nil {
 		t.Fatal("Expected error, got nil")
 	}
@@ -119,7 +141,11 @@ func TestDelete(t *testing.T) {
 	repo, teardownTest := setupTest(t)
 	defer teardownTest(t)
 
-	entity := guilde.New("Test", "test", "test")
+	creationDate := time.Now().UTC()
+	entity, err := guilde.New(guilde.GuildeOptions{Name: "Test", Img_url: "img", Page_url: "page", Exists: true, Validated: true, Active: nil, Creation_date: &creationDate})
+	if err != nil {
+		t.Fatal(err)
+	}
 	savedEntity, err := repo.Save(*entity)
 	if err != nil {
 		t.Fatal(err)

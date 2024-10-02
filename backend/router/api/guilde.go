@@ -4,26 +4,22 @@ import (
 	"jiva-guildes/backend"
 	"jiva-guildes/backend/router/utils"
 	"jiva-guildes/domain/commands"
+	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
 
 type GuildeInput struct {
-	Name     string `json:"name" form:"name" query:"name"`
-	Img_url  string `json:"img_url" form:"img_url" query:"img_url"`
-	Page_url string `json:"page_url" form:"page_url" query:"page_url"`
+	Name          string     `json:"name" form:"name" query:"name"`
+	Img_url       string     `json:"img_url" form:"img_url" query:"img_url"`
+	Page_url      string     `json:"page_url" form:"page_url" query:"page_url"`
+	Exists        bool       `json:"exists" form:"exists" query:"exists"`
+	Active        *bool      `json:"active" form:"active" query:"active"`
+	Creation_date *time.Time `json:"creation_date" form:"creation_date" query:"creation_date"`
 }
 
 var ServiceManager = backend.ServiceManager
-
-// HandleInput is a function that binds the request body to the data struct, validates it
-// and instanciate a command. Should always be used for POST requests.
-func HandleInput(c echo.Context, data interface{}) error { //TODO use it
-	if err := c.Bind(data); err != nil { //TODO Maybe create an utility function to bind/validate(/return a cmd) to use in every request
-		return echo.NewHTTPError(utils.StatusBadRequest, "Failed to parse request body")
-	}
-	return nil
-}
 
 func InitGuildeApiRoutes(e *echo.Echo) {
 	api := e.Group("/api")
@@ -43,21 +39,24 @@ func getGuilde(c echo.Context) error {
 func createGuilde(c echo.Context) error {
 	g := new(GuildeInput)
 	if err := c.Bind(g); err != nil {
-		return echo.NewHTTPError(utils.StatusBadRequest, "Failed to parse request body")
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse request body")
 	}
 	cmd := commands.CreateGuildeCommand{
-		Name:     g.Name,
-		Img_url:  g.Img_url,
-		Page_url: g.Page_url,
+		Name:          g.Name,
+		Img_url:       g.Img_url,
+		Page_url:      g.Page_url,
+		Exists:        g.Exists,
+		Active:        g.Active,
+		Creation_date: g.Creation_date,
 	}
 
 	if err := backend.Validate.Struct(cmd); err != nil {
-		return echo.NewHTTPError(utils.StatusUnprocessable, err.Error())
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
 	}
 	guilde, err := ServiceManager.CreateGuildeHandler(cmd)
 	if err != nil {
 		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
 		return echo.NewHTTPError(code, message)
 	}
-	return c.JSON(utils.StatusCreated, guilde)
+	return c.JSON(http.StatusCreated, guilde)
 }

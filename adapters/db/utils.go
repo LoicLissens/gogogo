@@ -21,6 +21,9 @@ func HandleSQLErrors(err error, tableName string, uuid uuid.UUID) error {
 		errorMessage := fmt.Sprintf("Entity with UUID %s already exists in table %s", uuid, tableName)
 		return customerrors.NewErrorAlreadyExists(errorMessage)
 	}
+	if e, ok := err.(*pgconn.PgError); ok {
+		fmt.Println(e.Code)
+	}
 	log.Fatal(err)
 	return err
 }

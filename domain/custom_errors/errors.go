@@ -17,3 +17,11 @@ type ErrorAlreadyExists struct {
 func NewErrorAlreadyExists(message string) ErrorAlreadyExists {
 	return ErrorAlreadyExists{errors.New(message)}
 }
+
+type ValueError struct {
+	error
+}
+
+func NewValueError(message string) ValueError {
+	return ValueError{errors.New(message)}
+}

@@ -25,16 +25,16 @@ func (gv GuildeView) Fetch(uuid uuid.UUID) (dtos.GuildeViewDTO, error) {
 	statement := fmt.Sprintf("SELECT * FROM %s WHERE uuid = $1", tableName)
 	row := gv.conn.QueryRow(context.Background(), statement, uuid)
 	dto := dtos.GuildeViewDTO{}
-	err := row.Scan(&dto.Uuid, &dto.Created_at, &dto.Updated_at, &dto.Name, &dto.Img_url, &dto.Page_url)
+	err := row.Scan(&dto.Uuid, &dto.Created_at, &dto.Updated_at, &dto.Name, &dto.Img_url, &dto.Page_url, &dto.Exists, &dto.Validated, &dto.Active, &dto.Creation_date)
 	if err != nil {
 		return dtos.GuildeViewDTO{}, db.HandleSQLErrors(err, tableName, uuid)
 	}
 	return dto, nil
 }
 
-// TODO: add ordering (asc et desc) and filtering
-func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) { //TODO: Will need to add additional check for pagination to add in utils method
-	whereClause := "" // For later use /!\ adapt the $ sign of the statement to match the correct query parameter
+// TODO: add ordering (asc et desc) and filtering + check for pagination
+func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) {
+	whereClause := "" //! For later use /!\ adapt the $ sign of the statement to match the correct query parameter
 	params := []interface{}{}
 	countStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tableName, whereClause)
 	var NbItems int
@@ -51,12 +51,11 @@ func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) {
 	dtoList := make([]dtos.GuildeViewDTO, 0)
 	for rows.Next() {
 		dto := dtos.GuildeViewDTO{}
-		err := rows.Scan(&dto.Uuid, &dto.Created_at, &dto.Updated_at, &dto.Name, &dto.Img_url, &dto.Page_url)
+		err := rows.Scan(&dto.Uuid, &dto.Created_at, &dto.Updated_at, &dto.Name, &dto.Img_url, &dto.Page_url, &dto.Exists, &dto.Validated, &dto.Active, &dto.Creation_date)
 		if err != nil {
 			return dtos.GuildeListViewDTO{}, err
 		}
 		dtoList = append(dtoList, dto)
 	}
 	return dtos.GuildeListViewDTO{Items: dtoList, NbItems: NbItems}, nil
-
 }

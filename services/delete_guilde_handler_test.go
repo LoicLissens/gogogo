@@ -7,6 +7,7 @@ import (
 	"jiva-guildes/domain/models/guilde"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -15,7 +16,17 @@ func TestDeleteGuildeHandler(t *testing.T) {
 	TestServiceManager, teardownTest := SetupTest(t)
 	defer teardownTest(t)
 	uow := TestServiceManager.UnitOfWorkManager.Start()
-	guilde := guilde.New("GUnit", "https://www.googleimage.com", "https://www.google.com")
+	guilde, err := guilde.New(guilde.GuildeOptions{Name: "GUnit",
+		Img_url:       "https://www.googleimage.com",
+		Page_url:      "https://www.google.com",
+		Exists:        true,
+		Active:        &[]bool{true}[0],
+		Creation_date: &[]time.Time{time.Now()}[0],
+		Validated:     true,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	g, err := uow.GuildeRepository().Save(*guilde)
 	if err != nil {
 		t.Fatal(err)

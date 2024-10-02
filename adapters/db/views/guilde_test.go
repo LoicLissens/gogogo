@@ -2,7 +2,6 @@ package views
 
 import (
 	"errors"
-	"fmt"
 	"jiva-guildes/adapters"
 	"jiva-guildes/adapters/db"
 	"jiva-guildes/adapters/db/tables"
@@ -12,14 +11,13 @@ import (
 	"jiva-guildes/domain/ports/views"
 	"jiva-guildes/domain/ports/views/dtos"
 	"jiva-guildes/settings"
+	"time"
 
 	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
 )
-
-// TODO Try to use test suite (see:https://medium.com/nerd-for-tech/setup-and-teardown-unit-test-in-go-bd6fa1b785cd)
 
 func setupTest(tb testing.TB) (ports.UnitOfWork, views.ViewsManager, func(tb testing.TB)) {
 	tables.InitAllTables()
@@ -35,8 +33,11 @@ func setupTest(tb testing.TB) (ports.UnitOfWork, views.ViewsManager, func(tb tes
 	}
 }
 
-func createGuilde(uow ports.UnitOfWork, name string, img_url string, page_url string) guilde.Guilde {
-	g := guilde.New(name, img_url, page_url)
+func createGuilde(uow ports.UnitOfWork, opts guilde.GuildeOptions) guilde.Guilde {
+	g, err := guilde.New(opts)
+	if err != nil {
+		panic(err)
+	}
 	savedGuilde, err := uow.GuildeRepository().Save(*g)
 	if err != nil {
 		panic(err)
@@ -47,7 +48,7 @@ func TestFetchGuilde(t *testing.T) {
 	uow, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
 
-	g := createGuilde(uow, "GUnit", "https://www.googleimage.com", "https://www.google.com")
+	g := createGuilde(uow, guilde.GuildeOptions{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil})
 	fetchedGuilde, err := ViewsManager.Guilde().Fetch(g.Uuid)
 	if err != nil {
 		t.Fatal(err)
@@ -91,13 +92,17 @@ func TestFetchGuildeNotFound(t *testing.T) {
 func TestListGuildes(t *testing.T) {
 	uow, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
-	samples := []map[string]string{
-		{"name": "Gunit", "url": "url", "img": "img"},
-		{"name": "D12", "url": "url2", "img": "img2"},
-		{"name": "Neptuns", "url": "url3", "img": "img3"},
+	active := true
+	notActive := false
+	today := time.Now().UTC()
+	samples := []guilde.GuildeOptions{
+		{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil},
+		{Name: "D12", Page_url: "img1", Exists: true, Validated: true, Active: nil, Creation_date: nil},
+		{Name: "eminem", Exists: true, Validated: true, Active: &active, Creation_date: &today},
+		{Name: "AS$AP", Page_url: "img3", Exists: false, Validated: false, Active: &notActive, Creation_date: &today},
 	}
 	for _, sample := range samples {
-		createGuilde(uow, sample["name"], sample[""], "https://www.google.com")
+		createGuilde(uow, sample)
 	}
 	fetchedGuildes, err := ViewsManager.Guilde().List(1, 10)
 	if err != nil {
@@ -107,19 +112,18 @@ func TestListGuildes(t *testing.T) {
 		t.Fatalf("Expected %s, got %s", reflect.TypeOf(dtos.GuildeListViewDTO{}), reflect.TypeOf(fetchedGuildes))
 	}
 	guildes := fetchedGuildes.Items
-	fmt.Printf("%v\n", guildes)
 	if len(guildes) != len(samples) {
-		t.Fatalf("Expected %d, got %d", 4, len(guildes))
+		t.Fatalf("Expected %d, got %d", len(samples), len(guildes))
 	}
 	for i, guilde := range guildes {
-		if guilde.Name != samples[i]["name"] {
-			t.Fatalf("Expected %s, got %s", samples[i]["name"], guilde.Name)
+		if guilde.Name != samples[i].Name {
+			t.Fatalf("Expected %s, got %s", samples[i].Name, guilde.Name)
 		}
-		if guilde.Img_url != samples[i]["img"] {
-			t.Fatalf("Expected %s, got %s", samples[i]["img"], guilde.Img_url)
+		if guilde.Img_url != samples[i].Img_url {
+			t.Fatalf("Expected %s, got %s", samples[i].Img_url, guilde.Img_url)
 		}
-		if guilde.Page_url != samples[i]["url"] {
-			t.Fatalf("Expected %s, got %s", samples[i]["url"], guilde.Page_url)
+		if guilde.Page_url != samples[i].Page_url {
+			t.Fatalf("Expected %s, got %s", samples[i].Page_url, guilde.Page_url)
 		}
 	}
 }

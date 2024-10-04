@@ -45,10 +45,6 @@ func CreateFromCommand(cmd commands.CreateGuildeCommand, validated bool) (*Guild
 }
 func New(opts GuildeOptions) (*Guilde, error) {
 
-	if !opts.Exists && (opts.Active != nil && *opts.Active) {
-		return &Guilde{}, customerrors.NewValueError("A guilde can't be active if it doesn't exist")
-	}
-
 	g := Guilde{
 		BaseModel: models.BaseModel{
 			Uuid:       uuid.New(),
@@ -63,5 +59,39 @@ func New(opts GuildeOptions) (*Guilde, error) {
 		Active:        opts.Active,
 		Creation_date: opts.Creation_date,
 	}
+	err := g.Validate()
+	if err != nil {
+		return &Guilde{}, err
+	}
 	return &g, nil
+}
+func (g *Guilde) UpdateFromCommand(cmd commands.UpdateGuildeCommand) error {
+	if cmd.Name != "" {
+		g.Name = cmd.Name
+	}
+	if cmd.Img_url != "" {
+		g.Img_url = cmd.Img_url
+	}
+	if cmd.Page_url != "" {
+		g.Page_url = cmd.Page_url
+	}
+	if cmd.Exists != nil {
+		g.Exists = *cmd.Exists
+	}
+	if cmd.Validated != nil {
+		g.Validated = *cmd.Validated
+	}
+	if cmd.Active != nil {
+		g.Active = cmd.Active
+	}
+	if cmd.CreationDate != (time.Time{}) {
+		g.Creation_date = &cmd.CreationDate
+	}
+	return g.Validate()
+}
+func (g Guilde) Validate() error {
+	if !g.Exists && (g.Active != nil && *g.Active) {
+		return customerrors.NewValueError("A guilde can't be active if it doesn't exist")
+	}
+	return nil
 }

@@ -13,7 +13,6 @@ func TestDBConnection(t *testing.T) {
 	pool := MountDB(settings.AppSettings.DATABASE_URI)
 	defer pool.Close()
 
-	// Define test data
 	_, err := pool.Exec(context.Background(), "SELECT 1")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Ping failed: %v\n", err)

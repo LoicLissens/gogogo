@@ -5,6 +5,7 @@ import (
 	"jiva-guildes/backend"
 	"jiva-guildes/domain/commands"
 	"jiva-guildes/domain/ports/views/dtos"
+	"reflect"
 
 	"github.com/buger/goterm"
 	"github.com/google/uuid"
@@ -59,7 +60,25 @@ func browseGuildes(page int) {
 	browseGuildes(page)
 }
 func createGuilde() {
-	fmt.Println("Creating guilde")
+	fmt.Println(goterm.Color(goterm.Bold("Creating guilde"), goterm.CYAN))
+	cmd := commands.CreateGuildeCommand{}
+
+	val := reflect.ValueOf(&cmd).Elem()
+	for i := 0; i < val.NumField(); i++ {
+		typeField := val.Type().Field(i)
+		fmt.Printf(goterm.Color(fmt.Sprintf("%s\n :", typeField.Name), goterm.YELLOW))
+		var input string
+		switch typeField.Type.Kind() {
+		case reflect.String:
+			fmt.Scanln(&input)
+			val.Field(i).SetString(input)
+		case reflect.Bool:
+			val.Field(i).SetBool(input)
+		}
+	}
+	// if err := backend.Validate.Struct(cmd); err != nil {
+	// 	panic(err)
+	// }
 }
 func manageGuilde(guilde dtos.GuildeViewDTO) {
 	menu := NewMenu("Manage guilde: " + fmt.Sprint(guilde.Name))
@@ -68,7 +87,7 @@ func manageGuilde(guilde dtos.GuildeViewDTO) {
 	itemId := menu.Display()
 	switch itemId {
 	case "EDIT":
-		fmt.Println("Not implemented")
+		editGuilde(guilde.Uuid)
 	case "DELETE":
 		deleteGuilde(guilde.Uuid)
 	}
@@ -94,4 +113,7 @@ func deleteGuilde(uuid uuid.UUID) {
 	}
 	deletedMsg := goterm.Color("Guilde deleted", goterm.GREEN)
 	fmt.Println(deletedMsg)
+}
+func editGuilde(uuid uuid.UUID) {
+	fmt.Println("Editing guilde")
 }

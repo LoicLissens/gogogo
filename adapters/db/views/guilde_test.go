@@ -19,21 +19,22 @@ import (
 	"github.com/google/uuid"
 )
 
-func setupTest(tb testing.TB) (ports.UnitOfWork, views.ViewsManager, func(tb testing.TB)) {
+func setupTest(tb testing.TB) (ports.UnitOfWorkManager, views.ViewsManager, func(tb testing.TB)) {
 	tables.InitAllTables()
 
 	var connectionPool = db.MountDB(settings.AppSettings.DATABASE_URI)
 	var UnitOfWorkManager = adapters.NewUnitOfWorkManager(connectionPool)
-	uow := UnitOfWorkManager.Start()
 	var ViewsManager = NewViewsManager(connectionPool)
 
-	return uow, ViewsManager, func(tb testing.TB) {
+	return UnitOfWorkManager, ViewsManager, func(tb testing.TB) {
 		tables.DropAllTables()
 		db.Teardown(connectionPool)
 	}
 }
 
-func createGuilde(uow ports.UnitOfWork, opts guilde.GuildeOptions) guilde.Guilde {
+func createGuilde(uowm ports.UnitOfWorkManager, opts guilde.GuildeOptions) guilde.Guilde {
+	uow, close := uowm.Start()
+	defer close()
 	g, err := guilde.New(opts)
 	if err != nil {
 		panic(err)
@@ -45,10 +46,10 @@ func createGuilde(uow ports.UnitOfWork, opts guilde.GuildeOptions) guilde.Guilde
 	return savedGuilde
 }
 func TestFetchGuilde(t *testing.T) {
-	uow, ViewsManager, teardownTest := setupTest(t)
+	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
 
-	g := createGuilde(uow, guilde.GuildeOptions{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil})
+	g := createGuilde(uowm, guilde.GuildeOptions{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil})
 	fetchedGuilde, err := ViewsManager.Guilde().Fetch(g.Uuid)
 	if err != nil {
 		t.Fatal(err)
@@ -90,7 +91,7 @@ func TestFetchGuildeNotFound(t *testing.T) {
 	}
 }
 func TestListGuildes(t *testing.T) {
-	uow, ViewsManager, teardownTest := setupTest(t)
+	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
 	active := true
 	notActive := false
@@ -102,7 +103,7 @@ func TestListGuildes(t *testing.T) {
 		{Name: "AS$AP", Page_url: "img3", Exists: false, Validated: false, Active: &notActive, Creation_date: &today},
 	}
 	for _, sample := range samples {
-		createGuilde(uow, sample)
+		createGuilde(uowm, sample)
 	}
 	fetchedGuildes, err := ViewsManager.Guilde().List(1, 10)
 	if err != nil {
@@ -127,3 +128,5 @@ func TestListGuildes(t *testing.T) {
 		}
 	}
 }
+
+//TODO test pagination

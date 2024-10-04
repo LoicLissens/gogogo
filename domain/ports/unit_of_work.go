@@ -9,5 +9,5 @@ type UnitOfWork interface {
 }
 
 type UnitOfWorkManager interface {
-	Start() UnitOfWork
+	Start() (UnitOfWork, func())
 }

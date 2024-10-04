@@ -5,7 +5,8 @@ import (
 )
 
 func (sm ServiceManager) DeleteGuildeHandler(cmd commands.DeleteGuildeCommand) error {
-	uow := sm.UnitOfWorkManager.Start()
+	uow, close := sm.UnitOfWorkManager.Start()
+	defer close()
 	err := uow.GuildeRepository().Delete(cmd.Uuid)
 	if err != nil {
 		// uow.Rollback() //todo: implement rollback

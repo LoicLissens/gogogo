@@ -3,23 +3,26 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"jiva-guildes/adapters/db"
 	"jiva-guildes/adapters/db/tables"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"log"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func GetEntityByUuid(connectionPool *pgxpool.Pool, uuid uuid.UUID, tableName string) pgx.Row {
+// Good practice about using sql package : http://go-database-sql.org/modifying.html
+// QueryRow can be used if 'RETURNING *' in statement, but scan should be called as it close rows under the hood
+// see https://stackoverflow.com/questions/57342939/when-returning-data-on-an-insert-or-update-do-i-still-need-to-use-exec
+func GetEntityByUuid(db db.PsqlDB, uuid uuid.UUID, tableName string) pgx.Row {
 	statement := fmt.Sprintf("SELECT * FROM %s WHERE uuid = $1", tableName)
-	row := connectionPool.QueryRow(context.Background(), statement, uuid)
+	row := db.QueryRow(context.Background(), statement, uuid)
 
 	return row
 }
 
-func SaveEntity(table tables.Table, conn *pgxpool.Pool) pgx.Row {
+func SaveEntity(table tables.Table, db db.PsqlDB) pgx.Row {
 	tableFields, values := tables.DeepFields(table)
 	fields := ""
 	fieldsPosition := ""
@@ -28,7 +31,7 @@ func SaveEntity(table tables.Table, conn *pgxpool.Pool) pgx.Row {
 			fields += ", "
 			fieldsPosition += ", "
 		}
-		fields += tables.GetDBColumnName(field.Name, table) // Remove fmt.Sprintf
+		fields += tables.GetDBColumnName(field.Name, table)
 		fieldsPosition += fmt.Sprintf("$%d", i+1)
 	}
 	statement := fmt.Sprintf(`INSERT INTO %s(%s) VALUES(%s) RETURNING *;`, table.GetTableName(), fields, fieldsPosition)
@@ -36,12 +39,13 @@ func SaveEntity(table tables.Table, conn *pgxpool.Pool) pgx.Row {
 	for i, v := range values {
 		interfaceValues[i] = v.Interface()
 	}
-	row := conn.QueryRow(context.Background(), statement, interfaceValues...)
+	row := db.QueryRow(context.Background(), statement, interfaceValues...)
+
 	return row
 }
-func DeleteEntity(tableName string, uuid uuid.UUID, conn *pgxpool.Pool) (int64, error) {
+func DeleteEntity(tableName string, uuid uuid.UUID, db db.PsqlDB) (int64, error) {
 	statement := fmt.Sprintf("DELETE FROM %s WHERE uuid = $1", tableName)
-	result, err := conn.Exec(context.Background(), statement, uuid)
+	result, err := db.Exec(context.Background(), statement, uuid)
 	if err != nil {
 		return 0, err
 	}
@@ -60,7 +64,7 @@ func HandleSQLDelete(rowAffected int64, err error, tableName string, uuid uuid.U
 	return nil
 }
 
-func UpdateEntity(table tables.Table, conn *pgxpool.Pool, uuid uuid.UUID) pgx.Row {
+func UpdateEntity(table tables.Table, db db.PsqlDB, uuid uuid.UUID) pgx.Row {
 	tableFields, values := tables.DeepFields(table)
 	fields := ""
 	for i, field := range tableFields {
@@ -75,6 +79,6 @@ func UpdateEntity(table tables.Table, conn *pgxpool.Pool, uuid uuid.UUID) pgx.Ro
 	for i, v := range values {
 		interfaceValues[i+1] = v.Interface()
 	}
-	row := conn.QueryRow(context.Background(), statement, interfaceValues...)
+	row := db.QueryRow(context.Background(), statement, interfaceValues...)
 	return row
 }

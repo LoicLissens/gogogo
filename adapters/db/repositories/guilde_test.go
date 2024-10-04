@@ -19,7 +19,7 @@ import (
 func setupTest(tb testing.TB) (GuildeRepository, func(tb testing.TB)) {
 	tables.InitAllTables()
 	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
-	var repo GuildeRepository = GuildeRepository{conn: pool}
+	var repo GuildeRepository = GuildeRepository{db: pool}
 	return repo, func(tb testing.TB) {
 		tables.DropAllTables()
 		db.Teardown(pool)
@@ -180,6 +180,7 @@ func TestUpdate(t *testing.T) {
 	savedEntity.Validated = true
 	savedEntity.Active = &active
 	savedEntity.Creation_date = nil
+	firstUpdatedDate := savedEntity.Updated_at
 	updatedEntity, err := repo.Update(savedEntity)
 	if err != nil {
 		t.Fatal(err)
@@ -192,5 +193,26 @@ func TestUpdate(t *testing.T) {
 	}
 	if updatedEntity.Creation_date != nil {
 		t.Fatal("Expected creation date to be nil, got ", updatedEntity.Creation_date)
+	}
+	if updatedEntity.Updated_at == firstUpdatedDate {
+		t.Fatal("Expected updated date to be different, got same")
+	}
+}
+
+func TestUpdateNotFound(t *testing.T) {
+	var expectedError customerrors.ErrorNotFound
+	repo, teardownTest := setupTest(t)
+	defer teardownTest(t)
+	creationDate := time.Now().UTC()
+	entity, err := guilde.New(guilde.GuildeOptions{Name: "Test", Img_url: "img", Page_url: "page", Exists: true, Validated: false, Active: nil, Creation_date: &creationDate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = repo.Update(*entity)
+	if err == nil {
+		t.Fatal("Expected error, got nil")
+	}
+	if err != nil && !errors.As(err, &expectedError) {
+		t.Fatal("Expected ErrorNotFound, got", reflect.TypeOf(err))
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"jiva-guildes/adapters/db/tables"
 	portView "jiva-guildes/domain/ports/views"
 	"jiva-guildes/domain/ports/views/dtos"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -47,6 +48,7 @@ func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) {
 	if err != nil {
 		return dtos.GuildeListViewDTO{}, err
 	}
+
 	defer rows.Close()
 	dtoList := make([]dtos.GuildeViewDTO, 0)
 	for rows.Next() {
@@ -56,6 +58,10 @@ func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) {
 			return dtos.GuildeListViewDTO{}, err
 		}
 		dtoList = append(dtoList, dto)
+	}
+	err = rows.Err()
+	if err != nil {
+		log.Fatal(err)
 	}
 	return dtos.GuildeListViewDTO{Items: dtoList, NbItems: NbItems}, nil
 }

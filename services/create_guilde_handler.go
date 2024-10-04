@@ -11,7 +11,8 @@ func (sm ServiceManager) CreateGuildeHandler(cmd commands.CreateGuildeCommand) (
 	if err != nil {
 		return guilde.Guilde{}, err
 	}
-	uow := sm.UnitOfWorkManager.Start()
+	uow, close := sm.UnitOfWorkManager.Start()
+	defer close()
 	savedGuilde, err := uow.GuildeRepository().Save(*g)
 	if err != nil {
 		// uow.Rollback() //todo: implement rollback

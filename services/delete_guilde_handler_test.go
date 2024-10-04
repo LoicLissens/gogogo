@@ -15,7 +15,8 @@ import (
 func TestDeleteGuildeHandler(t *testing.T) {
 	TestServiceManager, teardownTest := SetupTest(t)
 	defer teardownTest(t)
-	uow := TestServiceManager.UnitOfWorkManager.Start()
+	uow, close := TestServiceManager.UnitOfWorkManager.Start()
+
 	guilde, err := guilde.New(guilde.GuildeOptions{Name: "GUnit",
 		Img_url:       "https://www.googleimage.com",
 		Page_url:      "https://www.google.com",
@@ -31,6 +32,7 @@ func TestDeleteGuildeHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	close()
 	cmd := commands.DeleteGuildeCommand{
 		Uuid: g.Uuid,
 	}
@@ -38,10 +40,12 @@ func TestDeleteGuildeHandler(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	uow, close = TestServiceManager.UnitOfWorkManager.Start()
 	_, err = uow.GuildeRepository().GetByUUID(g.Uuid)
 	if err == nil {
 		t.Fatalf("Expected error, got nil")
 	}
+	close()
 }
 func TestDeleteGuildeHandlerNotFound(t *testing.T) {
 	var expectedError customerrors.ErrorNotFound

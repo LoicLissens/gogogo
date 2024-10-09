@@ -8,5 +8,5 @@ type CreateGuildeCommand struct {
 	Page_url      string     `json:"page_url" validate:"url"`
 	Exists        bool       `json:"exists" validate:"required"`
 	Active        *bool      `json:"active"`
-	Creation_date *time.Time `json:"creation_date" validate:"datetime"`
+	Creation_date *time.Time `json:"creation_date"` //TODO: should validate datetime but fails cause pointer ?
 }

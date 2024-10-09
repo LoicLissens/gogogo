@@ -36,12 +36,13 @@ func main() {
 	flag.Parse()
 
 	if *isCliMode {
-		menu := cli.NewMenu("What do you want to do ?")
+		menu := cli.NewMenu("What do you want to do ?", true)
+		menu.AddItem("Manage", MANAGE.ActionsEnum())
 		menu.AddItem("Init database", INIT_DB.ActionsEnum())
 		menu.AddItem("Scrapping of data", SCRAP.ActionsEnum())
 		menu.AddItem("Serve", SERVE.ActionsEnum())
 		menu.AddItem("Populate from CSV", POPULATE_FROM_CSV.ActionsEnum())
-		menu.AddItem("Manage", MANAGE.ActionsEnum())
+
 		itemId := menu.Display()
 		action := actionMapper[itemId]
 		action()

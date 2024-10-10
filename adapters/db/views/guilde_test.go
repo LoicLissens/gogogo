@@ -45,6 +45,21 @@ func createGuilde(uowm ports.UnitOfWorkManager, opts guilde.GuildeOptions) guild
 	}
 	return savedGuilde
 }
+func saveBatchSamples(uowm ports.UnitOfWorkManager) []guilde.GuildeOptions {
+	active := true
+	notActive := false
+	today := time.Now().UTC()
+	samples := []guilde.GuildeOptions{
+		{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil},
+		{Name: "D12", Page_url: "img1", Exists: true, Validated: true, Active: nil, Creation_date: nil},
+		{Name: "eminem", Exists: true, Validated: true, Active: &active, Creation_date: &today},
+		{Name: "AS$AP", Page_url: "img3", Exists: false, Validated: false, Active: &notActive, Creation_date: &today},
+	}
+	for _, sample := range samples {
+		createGuilde(uowm, sample)
+	}
+	return samples
+}
 func TestFetchGuilde(t *testing.T) {
 	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
@@ -93,19 +108,12 @@ func TestFetchGuildeNotFound(t *testing.T) {
 func TestListGuildes(t *testing.T) {
 	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
-	active := true
-	notActive := false
-	today := time.Now().UTC()
-	samples := []guilde.GuildeOptions{
-		{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil},
-		{Name: "D12", Page_url: "img1", Exists: true, Validated: true, Active: nil, Creation_date: nil},
-		{Name: "eminem", Exists: true, Validated: true, Active: &active, Creation_date: &today},
-		{Name: "AS$AP", Page_url: "img3", Exists: false, Validated: false, Active: &notActive, Creation_date: &today},
-	}
-	for _, sample := range samples {
-		createGuilde(uowm, sample)
-	}
-	fetchedGuildes, err := ViewsManager.Guilde().List(1, 10)
+
+	samples := saveBatchSamples(uowm)
+	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
+		Page:  1,
+		Limit: 10,
+	}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -127,6 +135,58 @@ func TestListGuildes(t *testing.T) {
 			t.Fatalf("Expected %s, got %s", samples[i].Page_url, guilde.Page_url)
 		}
 	}
+	// Retrieve nothing
+	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
+		Page:  2,
+		Limit: 10,
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	guildes = fetchedGuildes.Items
+	if len(guildes) != 0 {
+		t.Fatalf("Expected %d, got %d", 0, len(guildes))
+	}
+	// Retrieve 2
+	limit := 2
+	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
+		Page:  1,
+		Limit: 2,
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	guildes = fetchedGuildes.Items
+	if len(guildes) != limit {
+		t.Fatalf("Expected %d, got %d", limit, len(guildes))
+	}
+	// Tetst absurd value for pagination
+	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
+		Page:  0,
+		Limit: -2,
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	guildes = fetchedGuildes.Items
+	if len(guildes) != len(samples) {
+		t.Fatalf("Expected %d, got %d", len(samples), len(guildes))
+	}
 }
+func TestListGuildesOrdering(t *testing.T) {
+	uowm, ViewsManager, teardownTest := setupTest(t)
+	defer teardownTest(t)
 
-//TODO test pagination
+	saveBatchSamples(uowm)
+	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
+		Order: views.DESC,
+	},
+		OrderBy: views.OrderByName,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if reflect.TypeOf(fetchedGuildes) != reflect.TypeOf(dtos.GuildeListViewDTO{}) {
+		t.Fatalf("Expected %s, got %s", reflect.TypeOf(dtos.GuildeListViewDTO{}), reflect.TypeOf(fetchedGuildes))
+	}
+}

@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"jiva-guildes/adapters/db"
 	"jiva-guildes/adapters/db/tables"
+	"jiva-guildes/domain/ports/views"
 	portView "jiva-guildes/domain/ports/views"
 	"jiva-guildes/domain/ports/views/dtos"
 	"log"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -33,9 +35,22 @@ func (gv GuildeView) Fetch(uuid uuid.UUID) (dtos.GuildeViewDTO, error) {
 	return dto, nil
 }
 
-// TODO: add ordering (asc et desc) and filtering + check for pagination
-func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) {
-	whereClause := "" //! For later use /!\ adapt the $ sign of the statement to match the correct query parameter
+func (gv GuildeView) List(opts views.ListGuildesViewOpts) (dtos.GuildeListViewDTO, error) {
+	page, limit := portView.CheckPagination(opts.Page, opts.Limit)
+	positionalParams := 0
+	var sb strings.Builder
+	for _, filter := range opts.FilterBy {
+		positionalParams++
+		var whereClause string
+		if positionalParams == 1 {
+			whereClause = fmt.Sprintf("WHERE %s = $%d", filter, positionalParams)
+		} else {
+			whereClause = fmt.Sprintf(" AND %s = $%d ", filter, positionalParams)
+		}
+		sb.WriteString(whereClause)
+	}
+	whereClause := sb.String()
+	// Retrieve count
 	params := []interface{}{}
 	countStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tableName, whereClause)
 	var NbItems int
@@ -43,7 +58,10 @@ func (gv GuildeView) List(page int, limit int) (dtos.GuildeListViewDTO, error) {
 	if err != nil {
 		return dtos.GuildeListViewDTO{}, err
 	}
-	statement := fmt.Sprintf("SELECT * FROM %s LIMIT $1 OFFSET $2", tableName)
+	// Retrieve Items
+	order, orderBy := portView.CheckOrderBy(opts.Order, portView.OrderBy(opts.OrderBy))
+
+	statement := fmt.Sprintf("SELECT * FROM %s ORDER BY %s %s LIMIT $1 OFFSET $2", tableName, orderBy, order)
 	rows, err := gv.conn.Query(context.Background(), statement, limit, (page-1)*limit)
 	if err != nil {
 		return dtos.GuildeListViewDTO{}, err

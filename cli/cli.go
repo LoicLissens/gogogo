@@ -61,7 +61,7 @@ func browseGuildes(page int) {
 	browseGuildes(page)
 }
 
-func createGuilde() {
+func createGuilde() { // Berk
 	fmt.Println(goterm.Color(goterm.Bold("Creating guilde"), goterm.CYAN))
 	cmd := commands.CreateGuildeCommand{}
 
@@ -109,6 +109,7 @@ func createGuilde() {
 	fmt.Println(goterm.Color("Guilde created: "+g.Name, goterm.GREEN))
 	Manage()
 }
+
 func parseBoolFromInput(input string) *bool {
 	var result bool
 	switch input {
@@ -122,6 +123,7 @@ func parseBoolFromInput(input string) *bool {
 		return nil
 	}
 }
+
 func manageGuilde(guilde dtos.GuildeViewDTO) {
 	menu := NewMenu("Manage guilde: "+fmt.Sprint(guilde.Name), true)
 	menu.AddItem("Edit", "EDIT")
@@ -134,6 +136,7 @@ func manageGuilde(guilde dtos.GuildeViewDTO) {
 		deleteGuilde(guilde.Uuid)
 	}
 }
+
 func findGuilde(slice []dtos.GuildeViewDTO, uuidString string) dtos.GuildeViewDTO {
 	uuid, _ := uuid.Parse(uuidString)
 	for i, item := range slice {
@@ -144,6 +147,7 @@ func findGuilde(slice []dtos.GuildeViewDTO, uuidString string) dtos.GuildeViewDT
 	}
 	panic("Not found")
 }
+
 func deleteGuilde(uuid uuid.UUID) {
 	cmd := commands.DeleteGuildeCommand{Uuid: uuid}
 	if err := backend.Validate.Struct(cmd); err != nil {
@@ -156,6 +160,7 @@ func deleteGuilde(uuid uuid.UUID) {
 	deletedMsg := goterm.Color("Guilde deleted", goterm.GREEN)
 	fmt.Println(deletedMsg)
 }
+
 func editGuilde(guilde dtos.GuildeViewDTO) {
 	vals := reflect.ValueOf(guilde)
 	cmd := commands.UpdateGuildeCommand{Uuid: guilde.Uuid}

@@ -20,11 +20,11 @@ const (
 
 type ListGuildesViewOpts struct {
 	BaseListViewOpts
-	OrderBy               OrderByGuilde
-	NameFilter            string
-	ExistsFilter          *bool
-	ValidetedFilter       *bool
-	ActiveFilter          *bool
-	MinCreationDateFilter time.Time
-	MaxCreationDateFilter time.Time
+	OrderBy           OrderByGuilde
+	Name              string
+	Exists            *bool
+	Validated         *bool
+	Active            *bool
+	CreationDateSince time.Time
+	CreationDateUntil time.Time
 }

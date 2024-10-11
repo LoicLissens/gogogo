@@ -37,34 +37,23 @@ func (gv GuildeView) Fetch(uuid uuid.UUID) (dtos.GuildeViewDTO, error) {
 
 func (gv GuildeView) List(opts views.ListGuildesViewOpts) (dtos.GuildeListViewDTO, error) {
 	page, limit := portView.CheckPagination(opts.Page, opts.Limit)
-	positionalParams := 0
-	var sb strings.Builder
-	for _, filter := range opts.FilterBy {
-		positionalParams++
-		var whereClause string
-		if positionalParams == 1 {
-			whereClause = fmt.Sprintf("WHERE %s = $%d", filter, positionalParams)
-		} else {
-			whereClause = fmt.Sprintf(" AND %s = $%d ", filter, positionalParams)
-		}
-		sb.WriteString(whereClause)
-	}
-	whereClause := sb.String()
+	whereClause, positionalParam, params := writeWhereClase(opts)
 	// Retrieve count
-	params := []interface{}{}
 	countStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tableName, whereClause)
 	var NbItems int
 	err := gv.conn.QueryRow(context.Background(), countStatement, params...).Scan(&NbItems)
 	if err != nil {
-		return dtos.GuildeListViewDTO{}, err
+		return dtos.GuildeListViewDTO{}, fmt.Errorf("error while retrieving the count of guilde %w", err)
 	}
-	// Retrieve Items
-	order, orderBy := portView.CheckOrderBy(opts.Order, portView.OrderBy(opts.OrderBy))
 
-	statement := fmt.Sprintf("SELECT * FROM %s ORDER BY %s %s LIMIT $1 OFFSET $2", tableName, orderBy, order)
-	rows, err := gv.conn.Query(context.Background(), statement, limit, (page-1)*limit)
+	// Retrieve Items
+	order, orderBy := portView.CheckOrderBy(opts.OrderingMethod, portView.OrderBy(opts.OrderBy))
+	params = append(params, limit, (page-1)*limit)
+	statement := fmt.Sprintf("SELECT * FROM %s %s ORDER BY %s %s LIMIT $%d OFFSET $%d",
+		tableName, whereClause, orderBy, order, positionalParam+1, positionalParam+2)
+	rows, err := gv.conn.Query(context.Background(), statement, params...)
 	if err != nil {
-		return dtos.GuildeListViewDTO{}, err
+		return dtos.GuildeListViewDTO{}, fmt.Errorf("error while retrieving the guildes %w", err)
 	}
 
 	defer rows.Close()
@@ -82,4 +71,51 @@ func (gv GuildeView) List(opts views.ListGuildesViewOpts) (dtos.GuildeListViewDT
 		log.Fatal(err)
 	}
 	return dtos.GuildeListViewDTO{Items: dtoList, NbItems: NbItems}, nil
+}
+
+func writeWhereClase(opts views.ListGuildesViewOpts) (string, int, []interface{}) {
+	positionalParam := 0
+	var sb strings.Builder
+	var params []interface{}
+
+	if opts.Name != "" {
+		positionalParam++
+		params = append(params, "%"+opts.Name+"%")
+		sb.WriteString(fmt.Sprintf("%s LOWER(name) LIKE LOWER($%d)", getFilterKeyWord(positionalParam), positionalParam))
+	}
+	if opts.Exists != nil {
+		positionalParam++
+		params = append(params, *opts.Exists)
+		sb.WriteString(fmt.Sprintf("%s exists = $%d", getFilterKeyWord(positionalParam), positionalParam))
+	}
+	if opts.Validated != nil {
+		positionalParam++
+		params = append(params, *opts.Validated)
+		sb.WriteString(fmt.Sprintf("%s validated = $%d", getFilterKeyWord(positionalParam), positionalParam))
+	}
+	if opts.Active != nil {
+		positionalParam++
+		params = append(params, *opts.Active)
+		sb.WriteString(fmt.Sprintf("%s active = $%d", getFilterKeyWord(positionalParam), positionalParam))
+	}
+	if !opts.CreationDateSince.IsZero() {
+		positionalParam++
+		params = append(params, opts.CreationDateSince)
+		sb.WriteString(fmt.Sprintf("%s creation_date >= $%d", getFilterKeyWord(positionalParam), positionalParam))
+	}
+	if !opts.CreationDateUntil.IsZero() {
+		positionalParam++
+		params = append(params, opts.CreationDateUntil)
+		sb.WriteString(fmt.Sprintf("%s creation_date <= $%d", getFilterKeyWord(positionalParam), positionalParam))
+	}
+
+	whereClause := sb.String()
+	return whereClause, positionalParam, params
+}
+func getFilterKeyWord(positionalParam int) string {
+	if positionalParam == 1 {
+		return "WHERE"
+	} else {
+		return " AND"
+	}
 }

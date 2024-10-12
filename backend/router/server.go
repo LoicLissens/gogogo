@@ -14,6 +14,5 @@ func Serve() { //TODO call teardown in case of crash or shutdown
 	e.GET("/", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
-
 	e.Logger.Fatal(e.Start(":1323"))
 }

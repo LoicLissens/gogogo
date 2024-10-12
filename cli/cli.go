@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"jiva-guildes/backend"
 	"jiva-guildes/domain/commands"
+	"jiva-guildes/domain/ports/views"
 	"jiva-guildes/domain/ports/views/dtos"
+	"os"
 	"reflect"
 	"time"
 
@@ -13,52 +15,90 @@ import (
 )
 
 const (
-	BROWSE_GUILDE = "BROWSE_GUILDE"
-	CREATE_GUILDE = "CREATE_GUILDE"
-	NEXT_PAGE     = "NEXT_PAGE"
-	PREV_PAGE     = "PREV_PAGE"
-	QUIT          = "QUIT"
+	BROWSE_GUILDES    = "BROWSE_GUILDES"
+	BROWSE_ALL        = "BROWSE_ALL"
+	BROWSE_VERIFIED   = "BROWSE_VERIFIED"
+	BROWSE_UNVERIFIED = "BROWSE_UNVERIFIED"
+	CREATE_GUILDE     = "CREATE_GUILDE"
+	NEXT_PAGE         = "NEXT_PAGE"
+	PREV_PAGE         = "PREV_PAGE"
+	RETURN            = "RETURN"
+	QUIT              = "QUIT"
 )
 
 func Manage() {
 	menu := NewMenu("Manage", true)
-	menu.AddItem("browse guilde", BROWSE_GUILDE)
-	menu.AddItem("create guilde", CREATE_GUILDE)
+	menu.AddItem("Browse guilde", BROWSE_GUILDES)
+	menu.AddItem("Create guilde", CREATE_GUILDE)
 	itemId := menu.Display()
 	switch itemId {
-	case BROWSE_GUILDE:
-		browseGuildes(1)
+	case BROWSE_GUILDES:
+		browseGuildes(views.ListGuildesViewOpts{})
 	case CREATE_GUILDE:
 		createGuilde()
 	}
 }
-func browseGuildes(page int) {
+func browseGuildes(filters views.ListGuildesViewOpts) {
 	viewManager := backend.ViewsManager
-	limit := 15
-	guildesListDTO, err := viewManager.Guilde().List(page, limit)
+	if filters.Limit == 0 { // means no filters
+		filters = views.ListGuildesViewOpts{Page: 1, Limit: 15}
+		menu := NewMenu("What would you retrieve", true)
+		menu.AddItem("All guildes", BROWSE_ALL)
+		menu.AddItem("Verified guildes", BROWSE_VERIFIED)
+		menu.AddItem("Unverified guildes", BROWSE_UNVERIFIED)
+		itemId := menu.Display()
+		switch itemId {
+		case BROWSE_ALL:
+			browseGuildes(filters) // TODO: Do not call the same function over and over to avoid creating too much stack
+		case BROWSE_VERIFIED:
+			validated := true
+			filters.Validated = &validated
+			browseGuildes(filters)
+		case BROWSE_UNVERIFIED:
+			validated := false
+			filters.Validated = &validated
+			browseGuildes(filters)
+		}
+
+	}
+	guildesListDTO, err := viewManager.Guilde().List(filters)
 	if err != nil {
 		panic(err)
 	}
 	items, nbItems := guildesListDTO.Items, guildesListDTO.NbItems
-	menu := NewMenu("Total guilde: "+fmt.Sprint(nbItems), true)
-	menu.AddItem(goterm.Color("⬅︎ Previous page", goterm.MAGENTA), PREV_PAGE)
+	totalPages := nbItems / filters.Limit
+	currentPage := filters.Page
+	menu := NewMenu(fmt.Sprintf("Total guilde: %d (page %d/%d)", nbItems, currentPage, totalPages), true)
+	menu.AddCustomItem(&MenuItem{
+		Text:     "⬅︎ Previous page",
+		ID:       PREV_PAGE,
+		Disabled: currentPage == 1,
+		Color:    goterm.MAGENTA,
+	})
 	for _, guilde := range items {
 		menu.AddItem(guilde.Name, guilde.Uuid.String())
 	}
-	menu.AddItem(goterm.Color("Next page ⮕", goterm.MAGENTA), NEXT_PAGE)
+	menu.AddCustomItem(&MenuItem{
+		Text:     "Next page ⮕",
+		ID:       NEXT_PAGE,
+		Disabled: currentPage == totalPages,
+		Color:    goterm.MAGENTA,
+	})
 	menu.AddItem(goterm.Color("Quit", goterm.RED), QUIT)
 	itemId := menu.Display()
 	switch itemId {
 	case NEXT_PAGE:
-		browseGuildes(page + 1)
+		filters.Page += 1
+		browseGuildes(filters)
 	case PREV_PAGE:
-		browseGuildes(page - 1)
+		filters.Page -= 1
+		browseGuildes(filters)
 	case QUIT:
-		return
+		os.Exit(0) //TODO: Shutdown gracefully
 	default:
 		manageGuilde(findGuilde(items, itemId))
 	}
-	browseGuildes(page)
+	browseGuildes(filters)
 }
 
 func createGuilde() { // Berk
@@ -128,13 +168,17 @@ func manageGuilde(guilde dtos.GuildeViewDTO) {
 	menu := NewMenu("Manage guilde: "+fmt.Sprint(guilde.Name), true)
 	menu.AddItem("Edit", "EDIT")
 	menu.AddItem("Delete", "DELETE")
+	menu.AddItem("Return", RETURN)
 	itemId := menu.Display()
 	switch itemId {
 	case "EDIT":
 		editGuilde(guilde)
 	case "DELETE":
 		deleteGuilde(guilde.Uuid)
+	case RETURN:
+		return
 	}
+
 }
 
 func findGuilde(slice []dtos.GuildeViewDTO, uuidString string) dtos.GuildeViewDTO {

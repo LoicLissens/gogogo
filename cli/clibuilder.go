@@ -53,7 +53,6 @@ func (m *Menu) AddItem(option string, id string) *Menu {
 		Text:     option,
 		ID:       id,
 		Disabled: false,
-		Color:    goterm.YELLOW,
 	}
 
 	m.MenuItems = append(m.MenuItems, menuItem)
@@ -88,14 +87,19 @@ func (m *Menu) renderMenuItems(redraw bool) {
 		if menuItem.Disabled {
 			color = goterm.WHITE
 		} else {
-			color = goterm.YELLOW
+			if menuItem.Color != 0 {
+				color = menuItem.Color
+			}
 		}
 		cursor := "  "
 		if index == m.CursorPos {
+			color = goterm.YELLOW
+			if menuItem.Disabled {
+				color = goterm.WHITE
+			}
 			cursor = goterm.Color("> ", goterm.YELLOW)
-			menuItemText = goterm.Color(menuItemText, color)
 		}
-
+		menuItemText = goterm.Color(menuItemText, color)
 		fmt.Printf("\r%s %s%s", cursor, menuItemText, newline)
 	}
 }
@@ -103,7 +107,6 @@ func (m *Menu) renderMenuItems(redraw bool) {
 // Display will display the current menu options and awaits user selection
 // It returns the users selected choice
 func (m *Menu) Display() string {
-
 	// Show cursor again.
 	defer showCursor()
 	if m.clearScreen {

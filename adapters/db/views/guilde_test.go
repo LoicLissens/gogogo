@@ -119,10 +119,8 @@ func TestListGuildes(t *testing.T) {
 	defer teardownTest(t)
 
 	samples := saveBasicSamples(uowm)
-	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
-		Page:  1,
-		Limit: 10,
-	}})
+	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{Page: 1,
+		Limit: 10})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,10 +143,8 @@ func TestListGuildes(t *testing.T) {
 		}
 	}
 	// Retrieve nothing
-	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
-		Page:  2,
-		Limit: 10,
-	}})
+	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{Page: 2, Limit: 10})
+
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,10 +154,7 @@ func TestListGuildes(t *testing.T) {
 	}
 	// Retrieve 2
 	limit := 2
-	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
-		Page:  1,
-		Limit: 2,
-	}})
+	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{Page: 1, Limit: 2})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,10 +163,7 @@ func TestListGuildes(t *testing.T) {
 		t.Fatalf("Expected %d, got %d", limit, len(guildes))
 	}
 	// Tetst absurd value for pagination
-	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
-		Page:  0,
-		Limit: -2,
-	}})
+	fetchedGuildes, err = ViewsManager.Guilde().List(views.ListGuildesViewOpts{Page: 0, Limit: -2})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,11 +177,7 @@ func TestListGuildesOrdering(t *testing.T) {
 	defer teardownTest(t)
 
 	saveBasicSamples(uowm)
-	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{BaseListViewOpts: views.BaseListViewOpts{
-		OrderingMethod: views.DESC,
-	},
-		OrderBy: views.OrderByName,
-	})
+	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{OrderingMethod: views.DESC, OrderBy: views.OrderByName})
 	if err != nil {
 		t.Fatal(err)
 	}

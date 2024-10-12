@@ -9,12 +9,6 @@ const (
 	CREATED_AT OrderBy        = "created_at"
 )
 
-type BaseListViewOpts struct {
-	Page           int
-	Limit          int
-	OrderingMethod OrderingMethod
-}
-
 func CheckPagination(page, limit int) (int, int) {
 	if page < 1 {
 		page = 1

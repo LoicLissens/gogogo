@@ -37,7 +37,7 @@ func (gv GuildeView) Fetch(uuid uuid.UUID) (dtos.GuildeViewDTO, error) {
 
 func (gv GuildeView) List(opts views.ListGuildesViewOpts) (dtos.GuildeListViewDTO, error) {
 	page, limit := portView.CheckPagination(opts.Page, opts.Limit)
-	whereClause, positionalParam, params := writeWhereClase(opts)
+	whereClause, positionalParam, params := applyFilters(opts)
 	// Retrieve count
 	countStatement := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tableName, whereClause)
 	var NbItems int
@@ -73,7 +73,7 @@ func (gv GuildeView) List(opts views.ListGuildesViewOpts) (dtos.GuildeListViewDT
 	return dtos.GuildeListViewDTO{Items: dtoList, NbItems: NbItems}, nil
 }
 
-func writeWhereClase(opts views.ListGuildesViewOpts) (string, int, []interface{}) {
+func applyFilters(opts views.ListGuildesViewOpts) (string, int, []interface{}) {
 	positionalParam := 0
 	var sb strings.Builder
 	var params []interface{}

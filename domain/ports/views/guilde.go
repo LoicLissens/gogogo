@@ -19,7 +19,10 @@ const (
 )
 
 type ListGuildesViewOpts struct {
-	BaseListViewOpts
+	Page           int
+	Limit          int
+	OrderingMethod OrderingMethod
+
 	OrderBy           OrderByGuilde
 	Name              string
 	Exists            *bool

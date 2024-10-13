@@ -10,7 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type GuildeInput struct {
+type CreateGuildeInput struct {
 	Name          string     `json:"name" form:"name" query:"name"`
 	Img_url       string     `json:"img_url" form:"img_url" query:"img_url"`
 	Page_url      string     `json:"page_url" form:"page_url" query:"page_url"`
@@ -37,7 +37,7 @@ func getGuilde(c echo.Context) error {
 }
 
 func createGuilde(c echo.Context) error {
-	g := new(GuildeInput)
+	g := new(CreateGuildeInput)
 	if err := c.Bind(g); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse request body")
 	}

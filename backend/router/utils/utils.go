@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"net/http"
 )
@@ -31,6 +32,6 @@ func ErrorCodeMapper(err error, method string) (int, string) {
 	case customerrors.ErrorAlreadyExists:
 		return http.StatusUnprocessableEntity, err.Error()
 	default:
-		return http.StatusInternalServerError, err.Error()
+		return http.StatusInternalServerError, errors.New("internal server error").Error()
 	}
 }

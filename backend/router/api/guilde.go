@@ -19,7 +19,7 @@ type CreateGuildeInput struct {
 	Creation_date *time.Time `json:"creation_date" form:"creation_date" query:"creation_date"`
 }
 
-var ServiceManager = backend.ServiceManager
+var serviceManager = backend.ServiceManager
 
 func InitGuildeApiRoutes(e *echo.Echo) {
 	api := e.Group("/api")
@@ -41,6 +41,9 @@ func createGuilde(c echo.Context) error {
 	if err := c.Bind(g); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse request body")
 	}
+	if err := c.Validate(g); err != nil {
+		return err
+	}
 	cmd := commands.CreateGuildeCommand{
 		Name:          g.Name,
 		Img_url:       g.Img_url,
@@ -52,8 +55,8 @@ func createGuilde(c echo.Context) error {
 
 	if err := backend.Validate.Struct(cmd); err != nil {
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
-	}
-	guilde, err := ServiceManager.CreateGuildeHandler(cmd)
+	} //TODO: should go in the service layer
+	guilde, err := serviceManager.CreateGuildeHandler(cmd)
 	if err != nil {
 		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
 		return echo.NewHTTPError(code, message)

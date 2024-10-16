@@ -4,6 +4,8 @@ import (
 	"errors"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
 const (
@@ -34,4 +36,7 @@ func ErrorCodeMapper(err error, method string) (int, string) {
 	default:
 		return http.StatusInternalServerError, errors.New("internal server error").Error()
 	}
+}
+func IsHTMXRequest(c echo.Context) bool {
+	return c.Request().Header.Get("HX-Request") == "true"
 }

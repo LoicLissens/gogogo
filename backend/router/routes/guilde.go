@@ -108,7 +108,7 @@ func listGuildes(c echo.Context) error {
 	}
 
 	var templateName string
-	if IsHTMXRequest(c) {
+	if utils.IsHTMXRequest(c) {
 		templateName = "display"
 	} else {
 		templateName = "guildes.html"

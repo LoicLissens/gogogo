@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.3"
+        integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
+        crossorigin="anonymous"></script>
 
     <title>{{.Title}}</title>
 </head>
@@ -14,30 +16,43 @@
     <nav>index</nav>
     <main>
         {{ block "display" . }}
-        <div id="guildes" hx-boost="true" style="display: flex; flex-direction: column; align-items: center;">
-            {{ range .Items }}
-            <div  hx-confirm="Delete {{.Name}} ?" hx-target="closest div" hx-swap="outerHTML swap:1s" style="display: flex;justify-content: space-between; width: 50vw;">
-                <p>{{ .Name }}</p>
-                <img referrerpolicy="no-referrer" src='{{ .Img_url }}' alt="Imgage of {{ .Name }}" />
-                <a href="{{.Page_url}}" target="_blank">Official page</a>
-                <button hx-delete="/guildes/{{.Uuid}}">Delete</button>
-            </div>
-            {{ end }}
-            <div id="pagination">
-                {{ if gt .CurrentPage 1 }}
-                    <a href="?page={{ .GetPrevPage }}">Previous</a>
+        <table id="guildes" hx-="true" style="width: 50vw; margin: auto;">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Image</th>
+                    <th>Official Page</th>
+                    <th>Action</th>
+                    <th>Validated</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{ range .Items }}
+                <tr hx-confirm="Delete {{.Name}} ?" hx-target="closest tr" hx-swap="outerHTML swap:1s">
+                    <td>{{ .Name }}</td>
+                    <td><img referrerpolicy="no-referrer" src='{{ .Img_url }}' alt="Image of {{ .Name }}" /></td>
+                    <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
+                    <td><button hx-delete="/guildes/{{.Uuid}}">Delete</button></td>
+                    <td><input type="checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}" disabled="true"></td>
+                </tr>
                 {{ end }}
-                 <a >{{ .CurrentPage }}</a>
-                {{ if lt .CurrentPage .TotalPages }}
-                    <a href="?page={{  .GetNextPage }}">Next</a>
-                {{ end }}
-            </div>
-        </div>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4" style="text-align: center;">
+                        {{ if gt .CurrentPage 1 }}
+                        <a href="?page={{ .GetPrevPage }}">Previous</a>
+                        {{ end }}
+                        Page {{ .CurrentPage }}
+                        {{ if lt .CurrentPage .TotalPages }}
+                        <a href="?page={{  .GetNextPage }}">Next</a>
+                        {{ end }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
         {{ end }}
     </main>
-    <footer>hihi</footer>
 </body>
 
 </html>
-
-

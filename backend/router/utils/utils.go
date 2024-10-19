@@ -40,3 +40,12 @@ func ErrorCodeMapper(err error, method string) (int, string) {
 func IsHTMXRequest(c echo.Context) bool {
 	return c.Request().Header.Get("HX-Request") == "true"
 }
+func GetPageAndLimit(page int, limite int) (int, int) {
+	if page == 0 {
+		page = 1
+	}
+	if limite == 0 {
+		limite = 10
+	}
+	return page, limite
+}

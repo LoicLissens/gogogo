@@ -8,6 +8,7 @@ import (
 	"jiva-guildes/domain/ports/views"
 	viewdtos "jiva-guildes/domain/ports/views/dtos"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,22 +20,11 @@ var serviceManager = backend.ServiceManager
 
 func InitGuildeRoutes(e *echo.Echo) {
 	api := e.Group("")
-	api.GET("/guildes/:uuid", getGuilde)
 	api.GET("/guildes", listGuildes)
+	api.GET("/guildes/edit/:uuid", editGuilde)
+	api.GET("/guildes/row/:uuid", getRowGuilde)
 	api.DELETE("/guildes/:uuid", deleteGuilde)
-}
-
-func getGuilde(c echo.Context) error {
-	uuid, err := uuid.Parse(c.Param("uuid"))
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
-	}
-	g, err := viewsManager.Guilde().Fetch(uuid)
-	if err != nil {
-		code, message := utils.ErrorCodeMapper(err, utils.GetMethod)
-		return echo.NewHTTPError(code, message)
-	}
-	return c.JSON(http.StatusOK, g)
+	api.PATCH("/guildes/:uuid", patchGuilde)
 }
 
 type ListGuildesInput struct {
@@ -66,20 +56,18 @@ func (d ListeGuildePageData) GetPrevPage() int {
 	return d.CurrentPage - 1
 }
 
+// ROUTES HANDLERS
+
 func listGuildes(c echo.Context) error {
 	input := new(ListGuildesInput)
 	if err := c.Bind(input); err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing query parameters: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse query parameters")
 	}
 	// if err := c.Validate(input); err != nil { //TODO: validate the datetime make the page crash
 	// 	return err
 	// }
-	var limit int // EUurk disgusting !!!
-	if input.Limit == 0 {
-		limit = 10
-	} else {
-		limit = input.Limit
-	}
+	page, limit := utils.GetPageAndLimit(input.Page, input.Limit)
 
 	guildes, err := viewsManager.Guilde().List(views.ListGuildesViewOpts{
 		Page:              input.Page,
@@ -103,7 +91,7 @@ func listGuildes(c echo.Context) error {
 		Title:       "Liste",
 		Items:       guildes.Items,
 		NbItems:     guildes.NbItems,
-		CurrentPage: input.Page,
+		CurrentPage: page,
 		TotalPages:  guildes.NbItems / limit,
 	}
 
@@ -115,6 +103,7 @@ func listGuildes(c echo.Context) error {
 	}
 	return c.Render(http.StatusOK, templateName, data)
 }
+
 func deleteGuilde(c echo.Context) error {
 	uuid, err := uuid.Parse(c.Param("uuid"))
 	if err != nil {
@@ -126,4 +115,53 @@ func deleteGuilde(c echo.Context) error {
 		return echo.NewHTTPError(code, message)
 	}
 	return c.NoContent(http.StatusOK)
+}
+
+func editGuilde(c echo.Context) error {
+	uuid, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
+	}
+	g, err := viewsManager.Guilde().Fetch(uuid)
+	if err != nil {
+		code, message := utils.ErrorCodeMapper(err, utils.GetMethod)
+		return echo.NewHTTPError(code, message)
+	}
+	return c.Render(http.StatusOK, "edit-guilde-row", g)
+}
+func getRowGuilde(c echo.Context) error {
+	uuid, err := uuid.Parse(c.Param("uuid"))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
+	}
+	g, err := viewsManager.Guilde().Fetch(uuid)
+	if err != nil {
+		code, message := utils.ErrorCodeMapper(err, utils.GetMethod)
+		return echo.NewHTTPError(code, message)
+	}
+	return c.Render(http.StatusOK, "guilde-row", g)
+}
+func patchGuilde(c echo.Context) error {
+	uuid, err := uuid.Parse(c.Param("uuid"))
+	name := c.FormValue("name")
+	validated := c.FormValue("validated")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
+	}
+	var command commands.UpdateGuildeCommand
+	command.Name = name
+	command.Uuid = uuid
+	validatedBool, err := strconv.ParseBool(validated)
+	if err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	}
+	command.Validated = &validatedBool
+	fmt.Println("validatedBool", validatedBool)
+	updatedG, err := serviceManager.UpdateGuildeHandler(command)
+	if err != nil {
+		code, message := utils.ErrorCodeMapper(err, utils.PutMethod)
+		return echo.NewHTTPError(code, message)
+	}
+	return c.Render(http.StatusOK, "guilde-row", updatedG.ToViewDTO())
 }

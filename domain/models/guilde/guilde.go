@@ -6,6 +6,7 @@ import (
 	"jiva-guildes/domain/commands"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models"
+	"jiva-guildes/domain/ports/views/dtos"
 
 	"github.com/google/uuid"
 )
@@ -94,4 +95,19 @@ func (g Guilde) Validate() error {
 		return customerrors.NewValueError("A guilde can't be active if it doesn't exist")
 	}
 	return nil
+}
+
+func (g Guilde) ToViewDTO() dtos.GuildeViewDTO {
+	return dtos.GuildeViewDTO{
+		Uuid:          g.Uuid,
+		Name:          g.Name,
+		Img_url:       g.Img_url,
+		Page_url:      g.Page_url,
+		Exists:        g.Exists,
+		Validated:     g.Validated,
+		Active:        g.Active,
+		Creation_date: g.Creation_date,
+		Created_at:    g.Created_at,
+		Updated_at:    g.Updated_at,
+	}
 }

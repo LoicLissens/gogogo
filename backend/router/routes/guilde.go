@@ -8,6 +8,7 @@ import (
 	"jiva-guildes/domain/ports/views"
 	viewdtos "jiva-guildes/domain/ports/views/dtos"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -37,8 +38,8 @@ type ListGuildesInput struct {
 	Exists            *bool               `query:"exists"`
 	Validated         *bool               `query:"validated"`
 	Active            *bool               `query:"active"`
-	CreationDateSince time.Time           `query:"creation_date_since" validate:"datetime"`
-	CreationDateUntil time.Time           `query:"creation_date_until" validate:"datetime"`
+	CreationDateSince time.Time           `query:"creation_date_since"`
+	CreationDateUntil time.Time           `query:"creation_date_until"`
 }
 type ListeGuildePageData struct {
 	Lang        string
@@ -47,13 +48,28 @@ type ListeGuildePageData struct {
 	NbItems     int
 	CurrentPage int
 	TotalPages  int
+	CurrentURL  string
 }
 
-func (d ListeGuildePageData) GetNextPage() int {
-	return d.CurrentPage + 1
+func (d ListeGuildePageData) GetNextPage() string {
+	url, err := url.Parse(d.CurrentURL)
+	if err != nil {
+		panic(err)
+	}
+	q := url.Query()
+	q.Set("page", strconv.Itoa(d.CurrentPage+1))
+	url.RawQuery = q.Encode()
+	return url.String()
 }
-func (d ListeGuildePageData) GetPrevPage() int {
-	return d.CurrentPage - 1
+func (d ListeGuildePageData) GetPrevPage() string {
+	url, err := url.Parse(d.CurrentURL)
+	if err != nil {
+		panic(err)
+	}
+	q := url.Query()
+	q.Set("page", strconv.Itoa(d.CurrentPage-1))
+	url.RawQuery = q.Encode()
+	return url.String()
 }
 
 // ROUTES HANDLERS
@@ -64,9 +80,9 @@ func listGuildes(c echo.Context) error {
 		c.Logger().Error(fmt.Sprintf("Error while parsing query parameters: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse query parameters")
 	}
-	// if err := c.Validate(input); err != nil { //TODO: validate the datetime make the page crash
-	// 	return err
-	// }
+	if err := c.Validate(input); err != nil {
+		return err
+	}
 	page, limit := utils.GetPageAndLimit(input.Page, input.Limit)
 
 	guildes, err := viewsManager.Guilde().List(views.ListGuildesViewOpts{
@@ -93,6 +109,7 @@ func listGuildes(c echo.Context) error {
 		NbItems:     guildes.NbItems,
 		CurrentPage: page,
 		TotalPages:  guildes.NbItems / limit,
+		CurrentURL:  c.Request().URL.String(),
 	}
 
 	var templateName string
@@ -144,6 +161,8 @@ func getRowGuilde(c echo.Context) error {
 func patchGuilde(c echo.Context) error {
 	uuid, err := uuid.Parse(c.Param("uuid"))
 	name := c.FormValue("name")
+	creationDate := c.FormValue("creation-date")
+	fmt.Println("creationDate", creationDate)
 	validated := c.FormValue("validated")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
@@ -151,6 +170,13 @@ func patchGuilde(c echo.Context) error {
 	var command commands.UpdateGuildeCommand
 	command.Name = name
 	command.Uuid = uuid
+	creationDateParsed, err := time.Parse("2006-01-02", creationDate)
+	if err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	}
+	command.CreationDate = creationDateParsed
+
 	validatedBool, err := strconv.ParseBool(validated)
 	if err != nil {
 		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))

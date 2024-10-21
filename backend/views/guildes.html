@@ -1,19 +1,5 @@
-<!DOCTYPE html>
-<html lang="{{.Lang}}">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script src="https://unpkg.com/htmx.org@2.0.3"
-        integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
-        crossorigin="anonymous"></script>
-
-    <title>{{.Title}}</title>
-</head>
-
-<body>
-    <nav>index</nav>
+{{template "layout.html" .}}
+{{define "content"}}
     <main>
         <div style="width: 50vw; margin: auto;">
             <input type="search" name="name" placeholder="Filter guildes..." hx-get="/guildes"
@@ -24,14 +10,19 @@
                 <input type="checkbox" is="boolean-checkbox" targ name="validated" hx-get="/guildes" hx-trigger="input"
                     hx-target="#guildes" hx-push-url="true"></span>
         </div>
-        {{ block "display" . }}
-        <table id="guildes" style="width: 50vw; margin: auto;">
+        {{template "display" .}}
+    </main>
+{{end}}
+
+{{ define "display" }}
+        <table id="guildes" style="width: 60vw; margin: auto;">
             <thead>
                 <tr>
                     <th>Name</th>
                     <th>Image</th>
                     <th>Official Page</th>
                     <th>Validated</th>
+                    <th>Creation date</th>
                     <th></th>
                     <th></th>
                 </tr>
@@ -45,41 +36,20 @@
                 <tr>
                     <td colspan="4" style="text-align: center;">
                         {{ if gt .CurrentPage 1 }}
-                        <a hx-get="?page={{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
+                        <a hx-get="{{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
                             hx-push-url="true">Previous</a>
                         {{ end }}
                         Page {{ .CurrentPage }}
                         {{ if lt .CurrentPage .TotalPages }}
-                        <a hx-get="?page={{ .GetNextPage }}" hx-target="#guildes" style="cursor: pointer;"
+                        <a hx-get="{{ .GetNextPage }}" hx-target="#guildes" style="cursor: pointer;"
                             hx-push-url="true">Next</a>
                         {{ end }}
                     </td>
                 </tr>
             </tfoot>
         </table>
-        {{ end }}
-    </main>
-</body>
-<script>
-    class BooleanCheckbox extends HTMLInputElement {
-        constructor() {
-            super();
-        }
-        get checked() {
-            return true;
-        }
-        get value() {
-            if (super.checked) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
-    customElements.define("boolean-checkbox", BooleanCheckbox, { extends: "input" });
-</script>
+{{ end }}
 
-</html>
 {{define "guilde-row"}}
 <tr>
     <td>{{ .Name }}</td>
@@ -87,6 +57,7 @@
     <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
     <td><input type="checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}" disabled="true">
     </td>
+    <td>{{ GetDate .Creation_date }}</td>
     <td><button hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?" hx-target="closest tr"
             hx-swap="outerHTML swap:1s">Delete</button></td>
     <td><button hx-get="/guildes/edit/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Edit</button></td>
@@ -98,10 +69,12 @@
     <td><input name="name" value="{{.Name}}"></td>
     <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
     <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
-    <td><input name="validated" type="checkbox" is="boolean-checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}">
+    <td><input name="validated" type="checkbox" is="boolean-checkbox" {{if .Validated}} checked {{end}}
+            value="{{.Validated}}">
     </td>
-    <td><button hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr"
-            hx-swap="outerHTML" hx-include="closest tr">Save</button></td>
+    <td><input name="creation-date" type="date" value="{{ GetDate .Creation_date }}"></td>
+    <td><button hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr" hx-swap="outerHTML"
+            hx-include="closest tr">Save</button></td>
     <td><button hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Cancel</button></td>
 </tr>
 {{end}}

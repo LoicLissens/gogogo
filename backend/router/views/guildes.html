@@ -1,53 +1,58 @@
-{{template "layout.html" .}}
-{{define "content"}}
+<!DOCTYPE html>
+<html lang="{{.Lang}}">
+{{template "header" .}}
+
+<body>
     <main>
         <div style="width: 50vw; margin: auto;">
             <input type="search" name="name" placeholder="Filter guildes..." hx-get="/guildes"
                 hx-trigger="input changed delay:500ms, search" hx-target="#guildes">
         </div>
-        <div style="width: 50vw; margin: auto;">
+        <div style="width: 60; margin: auto;">
             <span><label for="filterCheckbox">Validated:</label>
                 <input type="checkbox" is="boolean-checkbox" targ name="validated" hx-get="/guildes" hx-trigger="input"
                     hx-target="#guildes" hx-push-url="true"></span>
         </div>
-        {{template "display" .}}
+        {{template "display-guildes" .}}
     </main>
-{{end}}
+</body>
 
-{{ define "display" }}
-        <table id="guildes" style="width: 60vw; margin: auto;">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Image</th>
-                    <th>Official Page</th>
-                    <th>Validated</th>
-                    <th>Creation date</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                {{ range .Items }}
-                {{ template "guilde-row" . }}
+</html>
+
+
+{{ define "display-guildes" }}
+<table id="guildes" style="width: 60vw; margin: auto;">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Image</th>
+            <th>Official Page</th>
+            <th>Validated</th>
+            <th>Creation date</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{ range .Items }}
+        {{ template "guilde-row" . }}
+        {{ end }}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="7" style="text-align: center;">
+                {{ if gt .CurrentPage 1 }}
+                <a hx-get="{{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
+                    hx-push-url="true">Previous</a>
                 {{ end }}
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="4" style="text-align: center;">
-                        {{ if gt .CurrentPage 1 }}
-                        <a hx-get="{{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
-                            hx-push-url="true">Previous</a>
-                        {{ end }}
-                        Page {{ .CurrentPage }}
-                        {{ if lt .CurrentPage .TotalPages }}
-                        <a hx-get="{{ .GetNextPage }}" hx-target="#guildes" style="cursor: pointer;"
-                            hx-push-url="true">Next</a>
-                        {{ end }}
-                    </td>
-                </tr>
-            </tfoot>
-        </table>
+                Page {{ .CurrentPage }}
+                {{ if lt .CurrentPage .TotalPages }}
+                <a hx-get="{{ .GetNextPage }}" hx-target="#guildes" style="cursor: pointer;" hx-push-url="true">Next</a>
+                {{ end }}
+            </td>
+        </tr>
+    </tfoot>
+</table>
 {{ end }}
 
 {{define "guilde-row"}}

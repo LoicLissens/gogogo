@@ -19,6 +19,9 @@ import (
 //go:embed views/*.html
 var tmplFS embed.FS
 
+//go:embed all:static
+var assetsFS embed.FS
+
 type (
 	CustomValidator struct {
 		validator *validator.Validate
@@ -46,7 +49,7 @@ func newTemplate() *Template {
 	}
 	// Using Must to ensure that the template is loaded at the start of the application as it will panic if template is not valid
 	// same as doing this: template.New(tmplFile).ParseFiles(tmplFile) then checking the error returned and panic if so
-	tmpl := template.Must(template.New("").Funcs(funcMap).ParseFS(tmplFS))
+	tmpl := template.Must(template.New("").Funcs(funcMap).ParseFS(tmplFS, "views/*.html"))
 	return &Template{
 		tmpl: tmpl,
 		// parse all html files in the views folder in a *Template collection
@@ -61,6 +64,10 @@ func Serve() {
 	e := echo.New()
 	e.Validator = &CustomValidator{validator: backend.Validate}
 	e.Use(middleware.Logger())
+
+	subFS := echo.MustSubFS(assetsFS, "static")
+	e.StaticFS("/static/*", subFS)
+
 	e.Renderer = newTemplate()
 	api.InitGuildeApiRoutes(e)
 	routes.InitGuildeRoutes(e)

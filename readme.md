@@ -20,3 +20,9 @@ To make a copy of the DB run :
 `docker exec -i container-name /bin/bash -c "PGPASSWORD=pass pg_dump --username username dbname" > dump.sql`
 Then to reaply a copy to the db :
 `docker exec -i container-name /bin/bash -c "PGPASSWORD=pass psql --username username dbname" < dump.sql`
+
+Frontend part:
+Vite is used to bundle the js into a single file that will be served by go
+These command should be executed from the *front* folder (bun is used but use wathever is fine)
+
+- To budle the js : `bun vite build`

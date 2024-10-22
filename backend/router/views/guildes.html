@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="{{.Lang}}">
 {{template "header" .}}
+
 <body>
     <main>
-        <div style="width: 50vw; margin: auto;">
+        <div style="width: 60vw; margin: auto;">
             <input type="search" name="name" placeholder="Filter guildes..." hx-get="/guildes"
                 hx-trigger="input changed delay:500ms, search" hx-target="#guildes">
         </div>
-        <div style="width: 60; margin: auto;">
+        <div style="width: 60vw; margin: auto;">
             <span><label for="filterCheckbox">Validated:</label>
-                <input type="checkbox" is="boolean-checkbox" targ name="validated" hx-get="/guildes" hx-trigger="input"
+                <input type="checkbox" is="boolean-checkbox" name="validated" hx-get="/guildes" hx-trigger="input"
                     hx-target="#guildes" hx-push-url="true"></span>
         </div>
         {{template "display-guildes" .}}
@@ -39,6 +40,10 @@
     </tbody>
     <tfoot>
         <tr>
+            <td colspan="7" style="text-align: center;"><a style="cursor: pointer;text-decoration: none;">➕ Create
+                    Guilde</a></td>
+        </tr>
+        <tr>
             <td colspan="7" style="text-align: center;">
                 {{ if gt .CurrentPage 1 }}
                 <a hx-get="{{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
@@ -50,35 +55,72 @@
                 {{ end }}
             </td>
         </tr>
-    </tfoot>
-</table>
-{{ end }}
+    </tfoot </table>
+    {{ end }}
 
-{{define "guilde-row"}}
-<tr>
-    <td>{{ .Name }}</td>
-    <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
-    <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
-    <td><input type="checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}" disabled="true">
-    </td>
-    <td>{{ GetDate .Creation_date }}</td>
-    <td><button hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?" hx-target="closest tr"
-            hx-swap="outerHTML swap:1s">Delete</button></td>
-    <td><button hx-get="/guildes/edit/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Edit</button></td>
-</tr>
-{{end}}
+    {{define "guilde-row"}}
+    <tr>
+        <td>{{ .Name }}</td>
+        <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
+        <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
+        <td><input type="checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}" disabled="true">
+        </td>
+        <td>{{ GetDateForTemplate .Creation_date }}</td>
+        <td><button hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?" hx-target="closest tr"
+                hx-swap="outerHTML swap:1s">Delete</button></td>
+        <td><button hx-get="/guildes/edit/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Edit</button></td>
+    </tr>
+    {{end}}
 
-{{define "edit-guilde-row"}}
-<tr>
-    <td><input name="name" value="{{.Name}}"></td>
-    <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
-    <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
-    <td><input name="validated" type="checkbox" is="boolean-checkbox" {{if .Validated}} checked {{end}}
-            value="{{.Validated}}">
-    </td>
-    <td><input name="creation-date" type="date" value="{{ GetDate .Creation_date }}"></td>
-    <td><button hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr" hx-swap="outerHTML"
-            hx-include="closest tr">Save</button></td>
-    <td><button hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Cancel</button></td>
-</tr>
-{{end}}
+    {{define "edit-guilde-row"}}
+    <tr>
+        <td><input name="name" value="{{.Name}}"></td>
+        <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
+        <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
+        <td><input name="validated" type="checkbox" is="boolean-checkbox" {{if .Validated}} checked {{end}}
+                value="{{.Validated}}">
+        </td>
+        <td><input name="creation-date" type="date" value="{{ GetDateForTemplate .Creation_date }}"></td>
+        <td><button hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr" hx-swap="outerHTML"
+                hx-include="closest tr">Save</button></td>
+        <td><button hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Cancel</button></td>
+    </tr>
+    {{end}}
+
+    {{define "create-guilde-form"}}
+    <dialog style="height: 100vh;" x-data="{ open: true }" :open="open">
+        <article>
+            <header>
+                <a style="cursor: pointer;" class="close" @click="open = false"></a>
+                <h2>Create Guilde</h2>
+            </header>
+            <section>
+                <form>
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+
+                    <label for="img_url">Image URL:</label>
+                    <input type="url" id="img_url" name="img_url">
+
+                    <label for="page_url">Page URL:</label>
+                    <input type="url" id="page_url" name="page_url">
+
+                    <label for="creation_date">Creation Date:</label>
+                    <input type="date" id="creation_date" name="creation_date" required>
+
+                    <div style="display: flex; justify-content: center; align-items: center;">
+                        <label for="exists">Exists:</label>
+                        <input type="checkbox" is="boolean-checkbox" name="exists">
+
+                        <label for="active">Active:</label>
+                        <input type="checkbox" is="boolean-checkbox" name="active">
+                    </div>
+
+                    <footer>
+                        <button type="submit" class="primary">Submit</button>
+                    </footer>
+                </form>
+            </section>
+        </article>
+    </dialog>
+    {{end}}

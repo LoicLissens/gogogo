@@ -2,22 +2,13 @@ package api
 
 import (
 	"jiva-guildes/backend"
+	"jiva-guildes/backend/router/dtos"
 	"jiva-guildes/backend/router/utils"
 	"jiva-guildes/domain/commands"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo/v4"
 )
-
-type CreateGuildeInput struct {
-	Name          string     `json:"name" form:"name" query:"name"`
-	Img_url       string     `json:"img_url" form:"img_url" query:"img_url"`
-	Page_url      string     `json:"page_url" form:"page_url" query:"page_url"`
-	Exists        bool       `json:"exists" form:"exists" query:"exists"`
-	Active        *bool      `json:"active" form:"active" query:"active"`
-	Creation_date *time.Time `json:"creation_date" form:"creation_date" query:"creation_date"`
-}
 
 var serviceManager = backend.ServiceManager
 
@@ -37,7 +28,7 @@ func getGuilde(c echo.Context) error {
 }
 
 func createGuilde(c echo.Context) error {
-	g := new(CreateGuildeInput)
+	g := new(dtos.CreateGuildeInput)
 	if err := c.Bind(g); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse request body")
 	}

@@ -3,12 +3,11 @@ package routes
 import (
 	"fmt"
 	"jiva-guildes/backend"
+	"jiva-guildes/backend/router/dtos"
 	"jiva-guildes/backend/router/utils"
 	"jiva-guildes/domain/commands"
 	"jiva-guildes/domain/ports/views"
-	viewdtos "jiva-guildes/domain/ports/views/dtos"
 	"net/http"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -29,54 +28,10 @@ func InitGuildeRoutes(e *echo.Echo) {
 	api.POST("/guildes", createGuilde)
 }
 
-type ListGuildesInput struct {
-	Page           int                  `query:"page"`
-	Limit          int                  `query:"limit"`
-	OrderingMethod views.OrderingMethod `query:"ordering_method"`
-
-	OrderBy           views.OrderByGuilde `query:"order_by"`
-	Name              string              `query:"name"`
-	Exists            *bool               `query:"exists"`
-	Validated         *bool               `query:"validated"`
-	Active            *bool               `query:"active"`
-	CreationDateSince time.Time           `query:"creation_date_since"`
-	CreationDateUntil time.Time           `query:"creation_date_until"`
-}
-type ListeGuildePageData struct {
-	Lang        string
-	Title       string
-	Items       []viewdtos.GuildeViewDTO
-	NbItems     int
-	CurrentPage int
-	TotalPages  int
-	CurrentURL  string
-}
-
-func (d ListeGuildePageData) GetNextPage() string {
-	url, err := url.Parse(d.CurrentURL)
-	if err != nil {
-		panic(err)
-	}
-	q := url.Query()
-	q.Set("page", strconv.Itoa(d.CurrentPage+1))
-	url.RawQuery = q.Encode()
-	return url.String()
-}
-func (d ListeGuildePageData) GetPrevPage() string {
-	url, err := url.Parse(d.CurrentURL)
-	if err != nil {
-		panic(err)
-	}
-	q := url.Query()
-	q.Set("page", strconv.Itoa(d.CurrentPage-1))
-	url.RawQuery = q.Encode()
-	return url.String()
-}
-
 // ROUTES HANDLERS
 
 func listGuildes(c echo.Context) error {
-	input := new(ListGuildesInput)
+	input := new(dtos.ListGuildesInput)
 	if err := c.Bind(input); err != nil {
 		c.Logger().Error(fmt.Sprintf("Error while parsing query parameters: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse query parameters")
@@ -103,7 +58,7 @@ func listGuildes(c echo.Context) error {
 		c.Logger().Error(fmt.Sprintf("Error while fetching guildes: %s", message))
 		return echo.NewHTTPError(code, message)
 	}
-	data := ListeGuildePageData{
+	data := dtos.ListeGuildePageData{
 		Lang:        "fr",
 		Title:       "Liste",
 		Items:       guildes.Items,
@@ -193,25 +148,29 @@ func patchGuilde(c echo.Context) error {
 	return c.Render(http.StatusOK, "guilde-row", updatedG.ToViewDTO())
 }
 func createGuilde(c echo.Context) error {
-	var command commands.CreateGuildeCommand
-	command.Name = name
-	creationDateParsed, err := time.Parse("2006-01-02", creationDate)
-	if err != nil {
-		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
-		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	g := new(dtos.CreateGuildeInput)
+	if err := c.Bind(g); err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse request body")
 	}
-	command.CreationDate = creationDateParsed
+	if err := c.Validate(g); err != nil {
+		return err
+	}
+	cmd := commands.CreateGuildeCommand{
+		Name:          g.Name,
+		Img_url:       g.Img_url,
+		Page_url:      g.Page_url,
+		Exists:        g.Exists,
+		Active:        g.Active,
+		Creation_date: g.Creation_date,
+	}
 
-	validatedBool, err := strconv.ParseBool(validated)
-	if err != nil {
-		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
-		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	if err := backend.Validate.Struct(cmd); err != nil {
+		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
 	}
-	command.Validated = &validatedBool
-	createdG, err := serviceManager.CreateGuildeHandler(command)
+	guilde, err := serviceManager.CreateGuildeHandler(cmd)
 	if err != nil {
 		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
 		return echo.NewHTTPError(code, message)
 	}
-	return c.Render(http.StatusOK, "guilde-row", createdG.ToViewDTO())
+	return c.Render(http.StatusOK, "guilde-row", guilde.ToViewDTO())
 }

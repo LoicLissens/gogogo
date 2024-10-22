@@ -3,7 +3,10 @@ package utils
 import (
 	"errors"
 	customerrors "jiva-guildes/domain/custom_errors"
+	"jiva-guildes/settings"
+
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -42,10 +45,16 @@ func IsHTMXRequest(c echo.Context) bool {
 }
 func GetPageAndLimit(page int, limite int) (int, int) {
 	if page == 0 {
-		page = 1
+		page = settings.AppSettings.DEFAULT_PAGE
 	}
 	if limite == 0 {
-		limite = 10
+		limite = settings.AppSettings.DEFAULT_PAGE_LIMIT
 	}
 	return page, limite
+}
+func GetDateForTemplate(date *time.Time) string {
+	if date == nil {
+		return ""
+	}
+	return date.Format("01-02-2006")
 }

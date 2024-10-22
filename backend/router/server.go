@@ -5,11 +5,11 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"time"
 
 	"jiva-guildes/backend"
 	"jiva-guildes/backend/router/api"
 	"jiva-guildes/backend/router/routes"
+	"jiva-guildes/backend/router/utils"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -40,12 +40,7 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 
 func newTemplate() *Template {
 	funcMap := template.FuncMap{
-		"GetDate": func(date *time.Time) string {
-			if date == nil {
-				return ""
-			}
-			return date.Format("01-02-2006")
-		},
+		"GetDateForTemplate": utils.GetDateForTemplate,
 	}
 	// Using Must to ensure that the template is loaded at the start of the application as it will panic if template is not valid
 	// same as doing this: template.New(tmplFile).ParseFiles(tmplFile) then checking the error returned and panic if so

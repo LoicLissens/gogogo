@@ -25,4 +25,6 @@ Frontend part:
 Vite is used to bundle the js into a single file that will be served by go
 These command should be executed from the *front* folder (bun is used but use wathever is fine)
 
+- Install dependencies : `bun install`
+- Watch files and bundle when changes : `bun watch`
 - To budle the js : `bun vite build`

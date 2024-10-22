@@ -1,5 +1,7 @@
 package views
 
+import "jiva-guildes/settings"
+
 type OrderingMethod string
 type OrderBy string
 
@@ -11,10 +13,10 @@ const (
 
 func CheckPagination(page, limit int) (int, int) {
 	if page < 1 {
-		page = 1
+		page = settings.AppSettings.DEFAULT_PAGE
 	}
 	if limit < 1 {
-		limit = 10
+		limit = settings.AppSettings.DEFAULT_PAGE_LIMIT
 	}
 	return page, limit
 }

@@ -15,6 +15,8 @@ type Settings struct {
 	DATABASE_URI        string `env:"DATABASE_URI"`
 	CSV_FILE_FROM_SCRAP string `env:"CSV_FILE_FROM_SCRAP"`
 	DATABASE_SCHEMA     string `env:"DATABASE_SCHEMA"`
+	DEFAULT_PAGE_LIMIT  int    `env:"DEFAULT_PAGE_LIMIT" envDefault:"10"`
+	DEFAULT_PAGE        int    `env:"DEFAULT_PAGE" envDefault:"1"`
 }
 
 var AppSettings *Settings

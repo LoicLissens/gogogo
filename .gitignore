@@ -4,3 +4,5 @@ dump.sql
 .DS_Store
 node_modules
 bun.lockb
+dump copy.sql
+guildes.csv

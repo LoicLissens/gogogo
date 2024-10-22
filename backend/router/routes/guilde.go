@@ -26,6 +26,7 @@ func InitGuildeRoutes(e *echo.Echo) {
 	api.GET("/guildes/row/:uuid", getRowGuilde)
 	api.DELETE("/guildes/:uuid", deleteGuilde)
 	api.PATCH("/guildes/:uuid", patchGuilde)
+	api.POST("/guildes", createGuilde)
 }
 
 type ListGuildesInput struct {
@@ -190,4 +191,27 @@ func patchGuilde(c echo.Context) error {
 		return echo.NewHTTPError(code, message)
 	}
 	return c.Render(http.StatusOK, "guilde-row", updatedG.ToViewDTO())
+}
+func createGuilde(c echo.Context) error {
+	var command commands.CreateGuildeCommand
+	command.Name = name
+	creationDateParsed, err := time.Parse("2006-01-02", creationDate)
+	if err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	}
+	command.CreationDate = creationDateParsed
+
+	validatedBool, err := strconv.ParseBool(validated)
+	if err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	}
+	command.Validated = &validatedBool
+	createdG, err := serviceManager.CreateGuildeHandler(command)
+	if err != nil {
+		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
+		return echo.NewHTTPError(code, message)
+	}
+	return c.Render(http.StatusOK, "guilde-row", createdG.ToViewDTO())
 }

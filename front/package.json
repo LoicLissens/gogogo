@@ -10,6 +10,7 @@
     "scripts": {
         "build": "vite build",
         "watch": "vite build --watch",
-        "watch-css": "sass --watch sass/input.scss ../backend/router/static/output.css"
+        "watch-css": "sass --watch sass/input.scss ../backend/router/static/output.css",
+        "watch-all": "npm run watch & npm run watch-css"
     }
 }

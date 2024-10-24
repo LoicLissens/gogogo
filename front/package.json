@@ -1,5 +1,6 @@
 {
     "devDependencies": {
+        "sass": "^1.80.4",
         "vite": "^5.4.9"
     },
     "dependencies": {
@@ -8,6 +9,7 @@
     },
     "scripts": {
         "build": "vite build",
-        "watch": "vite build --watch"
+        "watch": "vite build --watch",
+        "watch-css": "sass --watch sass/input.scss ../backend/router/static/output.css"
     }
 }

@@ -41,7 +41,7 @@ func createGuilde(c echo.Context) error {
 		Page_url:      g.Page_url,
 		Exists:        g.Exists,
 		Active:        g.Active,
-		Creation_date: g.Creation_date,
+		Creation_date: g.GetCreationDate(),
 	}
 
 	if err := backend.Validate.Struct(cmd); err != nil {

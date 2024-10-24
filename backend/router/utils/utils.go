@@ -40,9 +40,11 @@ func ErrorCodeMapper(err error, method string) (int, string) {
 		return http.StatusInternalServerError, errors.New("internal server error").Error()
 	}
 }
+
 func IsHTMXRequest(c echo.Context) bool {
 	return c.Request().Header.Get("HX-Request") == "true"
 }
+
 func GetPageAndLimit(page int, limite int) (int, int) {
 	if page == 0 {
 		page = settings.AppSettings.DEFAULT_PAGE
@@ -52,9 +54,10 @@ func GetPageAndLimit(page int, limite int) (int, int) {
 	}
 	return page, limite
 }
+
 func GetDateForTemplate(date *time.Time) string {
 	if date == nil {
-		return ""
+		return "-"
 	}
 	return date.Format("01-02-2006")
 }

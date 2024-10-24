@@ -1,4 +1,4 @@
-class BooleanCheckbox extends HTMLInputElement {
+class  BooleanCheckbox extends HTMLInputElement {
     constructor() {
         super();
     }

@@ -28,6 +28,8 @@
             <th>Image</th>
             <th>Official Page</th>
             <th>Validated</th>
+            <th>Exists</th>
+            <th>Active</th>
             <th>Creation date</th>
             <th></th>
             <th></th>
@@ -40,87 +42,110 @@
     </tbody>
     <tfoot>
         <tr>
-            <td colspan="7" style="text-align: center;"><a style="cursor: pointer;text-decoration: none;">➕ Create
-                    Guilde</a></td>
+            <td colspan="7" style="text-align: center;" x-data="{ open: false }">
+                <a class="secondary" style="cursor: pointer;text-decoration: none;" @click="open = true">➕ Create</a>
+                {{template "create-guilde" .}}
+            </td>
         </tr>
         <tr>
             <td colspan="7" style="text-align: center;">
                 {{ if gt .CurrentPage 1 }}
-                <a hx-get="{{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
-                    hx-push-url="true">Previous</a>
+                <a class="secondary" hx-get="{{ .GetPrevPage }}" hx-target="#guildes" style="cursor: pointer;"
+                    hx-push-url="true">Prev</a>
                 {{ end }}
                 Page {{ .CurrentPage }}
                 {{ if lt .CurrentPage .TotalPages }}
-                <a hx-get="{{ .GetNextPage }}" hx-target="#guildes" style="cursor: pointer;" hx-push-url="true">Next</a>
+                <a class="secondary" hx-get="{{ .GetNextPage }}" hx-target="#guildes" style="cursor: pointer;"
+                    hx-push-url="true">Next</a>
                 {{ end }}
             </td>
         </tr>
-    </tfoot </table>
-    {{ end }}
+    </tfoot>
+</table>
+{{ end }}
 
-    {{define "guilde-row"}}
-    <tr>
-        <td>{{ .Name }}</td>
-        <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
-        <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
-        <td><input type="checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}" disabled="true">
-        </td>
-        <td>{{ GetDateForTemplate .Creation_date }}</td>
-        <td><button hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?" hx-target="closest tr"
-                hx-swap="outerHTML swap:1s">Delete</button></td>
-        <td><button hx-get="/guildes/edit/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Edit</button></td>
-    </tr>
-    {{end}}
+{{define "guilde-row"}}
+<tr>
+    <td>{{ .Name }}</td>
+    <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
+    <td><a class="contrast" href="{{.Page_url}}" target="_blank">Official page</a></td>
+    <td><input type="checkbox" {{if .Validated}} checked {{end}} value="{{.Validated}}" disabled="true">
+    <td><input type="checkbox" {{if .Exists}} checked {{end}} value="{{.Exists}}" disabled="true">
+    <td><input type="checkbox" {{if .Active}} checked {{end}} value="{{.Active}}" disabled="true">
+    </td>
+    <td>{{ GetDateForTemplate .Creation_date }}</td>
+    <td><button class="outline" hx-get="/guildes/edit/{{.Uuid}}" hx-target="closest tr"
+            hx-swap="outerHTML">Edit</button></td>
+    <td><button class="outline pico-color-red-450" hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?"
+            hx-target="closest tr" hx-swap="outerHTML swap:1s">Delete</button></td>
+</tr>
+{{end}}
 
-    {{define "edit-guilde-row"}}
-    <tr>
-        <td><input name="name" value="{{.Name}}"></td>
-        <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
-        <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
-        <td><input name="validated" type="checkbox" is="boolean-checkbox" {{if .Validated}} checked {{end}}
-                value="{{.Validated}}">
-        </td>
-        <td><input name="creation-date" type="date" value="{{ GetDateForTemplate .Creation_date }}"></td>
-        <td><button hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr" hx-swap="outerHTML"
-                hx-include="closest tr">Save</button></td>
-        <td><button hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr" hx-swap="outerHTML">Cancel</button></td>
-    </tr>
-    {{end}}
+{{define "edit-guilde-row"}}
+<tr>
+    <td><input name="name" value="{{.Name}}"></td>
+    <td><img referrerpolicy="no-referrer" src="{{ .Img_url }}" alt="Image of {{ .Name }}" /></td>
+    <td><a href="{{.Page_url}}" target="_blank">Official page</a></td>
+    <td><input name="validated" type="checkbox" is="boolean-checkbox" {{if .Validated}} checked {{end}}
+            value="{{.Validated}}">
+    </td>
+    <td><input name="exists" type="checkbox" is="boolean-checkbox" {{if .Exists}} checked {{end}} value="{{.Exists}}">
+    </td>
+    <td><input name="active" type="checkbox" is="boolean-checkbox" {{if .Active}} checked {{end}} value="{{.Active}}">
+    </td>
+    <td><input name="creation-date" type="date" value="{{ GetDateForTemplate .Creation_date }}"></td>
+    <td><button class="outline" hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr"
+            hx-swap="outerHTML" hx-include="closest tr">Save</button></td>
+    <td><button class="outline" hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr"
+            hx-swap="outerHTML">Cancel</button></td>
+</tr>
+{{end}}
 
-    {{define "create-guilde-form"}}
-    <dialog style="height: 100vh;" x-data="{ open: true }" :open="open">
+{{define "create-guilde"}}
+<template x-teleport="body">
+    <dialog style="height: 100vh;" :open="open" @keydown.escape="open = false">
         <article>
             <header>
                 <a style="cursor: pointer;" class="close" @click="open = false"></a>
                 <h2>Create Guilde</h2>
             </header>
             <section>
-                <form>
-                    <label for="name">Name:</label>
-                    <input type="text" id="name" name="name" required>
-
-                    <label for="img_url">Image URL:</label>
-                    <input type="url" id="img_url" name="img_url">
-
-                    <label for="page_url">Page URL:</label>
-                    <input type="url" id="page_url" name="page_url">
-
+                <form hx-post="/guildes" hx-swap="beforebegin" hx-encoding='multipart/form-data'
+                    x-data="{ progress: 0 }"
+                    @htmx:xhr:progress="(evt) => {progress = evt.detail.loaded/evt.detail.total * 100}"
+                    @htmx:after-request="if (event.detail.successful) {$el.reset(); progress = 0}">
+                    <input type="text" id="name" name="name" placeholder="Name" required>
+                    <input placeholder="Image URL" type="url" id="img_url" name="img_url">
+                    <input placeholder="Page Url" type="url" id="page_url" name="page_url">
                     <label for="creation_date">Creation Date:</label>
-                    <input type="date" id="creation_date" name="creation_date" required>
-
-                    <div style="display: flex; justify-content: center; align-items: center;">
-                        <label for="exists">Exists:</label>
-                        <input type="checkbox" is="boolean-checkbox" name="exists">
-
-                        <label for="active">Active:</label>
-                        <input type="checkbox" is="boolean-checkbox" name="active">
-                    </div>
+                    <input type="date" id="creation_date" name="creation_date">
+                    <label>
+                        <input name="exists" type="checkbox" role="switch" @input="$el.value = $el.checked">
+                        Exists
+                    </label>
+                    <label>
+                        <input name="active" type="checkbox" role="switch" @input="$el.value = $el.checked">
+                        Active
+                    </label>
+                    <label>
+                        Logo :
+                        <input accept="image/*" type='file' name='image'>
+                    </label>
+                    <progress x-show="progress > 0" id='progress' :value=progress max='100'></progress>
 
                     <footer>
-                        <button type="submit" class="primary">Submit</button>
+                        <button type="submit" class="outline contrast">Submit</button>
                     </footer>
                 </form>
             </section>
         </article>
     </dialog>
-    {{end}}
+</template>
+{{end}}
+
+{{define "creation-success"}}
+<article x-ref="card" class="pico-background-lime-300">
+    <h3>Guilde {{.Name}} succesfuly created</h3> <a style="cursor: pointer;" class="close"
+        @click="$refs.card.remove()"></a>
+</article>
+{{end}}

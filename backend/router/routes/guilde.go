@@ -118,8 +118,9 @@ func patchGuilde(c echo.Context) error {
 	uuid, err := uuid.Parse(c.Param("uuid"))
 	name := c.FormValue("name")
 	creationDate := c.FormValue("creation-date")
-	fmt.Println("creationDate", creationDate)
 	validated := c.FormValue("validated")
+	// exists := c.FormValue("exists")
+	// active := c.FormValue("active")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
 	}
@@ -131,6 +132,16 @@ func patchGuilde(c echo.Context) error {
 		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
 	}
+	// parsedActive, err :=  strconv.ParseBool(active)
+	// if err != nil {
+	// 	c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	// }
+	// parsedExists, err :=  strconv.ParseBool(exists)
+	// if err != nil {
+	// 	c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	// }
 	command.CreationDate = creationDateParsed
 
 	validatedBool, err := strconv.ParseBool(validated)
@@ -139,7 +150,6 @@ func patchGuilde(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
 	}
 	command.Validated = &validatedBool
-	fmt.Println("validatedBool", validatedBool)
 	updatedG, err := serviceManager.UpdateGuildeHandler(command)
 	if err != nil {
 		code, message := utils.ErrorCodeMapper(err, utils.PutMethod)
@@ -147,23 +157,38 @@ func patchGuilde(c echo.Context) error {
 	}
 	return c.Render(http.StatusOK, "guilde-row", updatedG.ToViewDTO())
 }
+
 func createGuilde(c echo.Context) error {
 	g := new(dtos.CreateGuildeInput)
 	if err := c.Bind(g); err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing request body: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse request body")
 	}
-	if err := c.Validate(g); err != nil {
-		return err
+	img, err := c.FormFile("image")
+	if err != nil {
+		if err.Error() != "http: no such file" {
+			c.Logger().Error(fmt.Sprintf("Error while parsing img file: %s", err))
+			code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
+			return echo.NewHTTPError(code, message)
+		}
 	}
+	if img != nil {
+		fmt.Println("img", img.Size)
+	}
+	if err := c.Validate(g); err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while validating request body: %s", err))
+		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
+		return echo.NewHTTPError(code, message)
+	}
+
 	cmd := commands.CreateGuildeCommand{
 		Name:          g.Name,
 		Img_url:       g.Img_url,
 		Page_url:      g.Page_url,
 		Exists:        g.Exists,
 		Active:        g.Active,
-		Creation_date: g.Creation_date,
+		Creation_date: g.GetCreationDate(),
 	}
-
 	if err := backend.Validate.Struct(cmd); err != nil {
 		return echo.NewHTTPError(http.StatusUnprocessableEntity, err.Error())
 	}
@@ -172,5 +197,5 @@ func createGuilde(c echo.Context) error {
 		code, message := utils.ErrorCodeMapper(err, utils.PostMethod)
 		return echo.NewHTTPError(code, message)
 	}
-	return c.Render(http.StatusOK, "guilde-row", guilde.ToViewDTO())
+	return c.Render(http.StatusCreated, "creation-success", guilde.ToViewDTO())
 }

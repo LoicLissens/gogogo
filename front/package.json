@@ -4,13 +4,15 @@
         "vite": "^5.4.9"
     },
     "dependencies": {
+        "@picocss/pico": "^2.0.6",
         "alpinejs": "^3.14.3",
         "htmx.org": "2.0.3"
     },
     "scripts": {
         "build": "vite build",
         "watch": "vite build --watch",
-        "watch-css": "sass --watch sass/input.scss ../backend/router/static/output.css",
+        "build-css": "sass --load-path=node_modules/@picocss/pico/scss/ sass/input.scss ../backend/router/static/output.css",
+        "watch-css": "sass --quiet-deps --load-path=node_modules/@picocss/pico/scss/ --watch sass/input.scss ../backend/router/static/output.css",
         "watch-all": "npm run watch & npm run watch-css"
     }
 }

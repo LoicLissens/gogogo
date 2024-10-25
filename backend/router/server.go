@@ -62,6 +62,7 @@ func Serve() {
 		Format: "[${time_rfc3339}] ${status} ${method} ${uri}, treated in ${latency_human}, err:" + "\033[31m" + "${error}" + "\033[0m" + "\n",
 		Output: e.Logger.Output(),
 	}))
+
 	subFS := echo.MustSubFS(assetsFS, "static")
 	e.StaticFS("/static/*", subFS)
 

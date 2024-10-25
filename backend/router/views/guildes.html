@@ -5,15 +5,24 @@
 <body>
     <main>
         <div style="width: 60vw; margin: auto;">
-            <input type="search" name="name" placeholder="Filter guildes..." hx-get="/guildes"
-                hx-trigger="input changed delay:500ms, search" hx-target="#guildes">
-        </div>
-        <div style="width: 60vw; margin: auto;">
-            <span><label for="filterCheckbox">Validated:</label>
-                <input type="checkbox" is="boolean-checkbox" name="validated" hx-get="/guildes" hx-trigger="input"
-                    hx-target="#guildes" hx-push-url="true"></span>
-        </div>
-        {{template "display-guildes" .}}
+            <p style="text-align: center;">Filters</p>
+            <div x-data="{searching : false}" :aria-busy="searching" @htmx:before-request="searching = true"
+                @htmx:after-request="searching = false">
+                <input type="search" name="name" placeholder="Search..." hx-get="/guildes"
+                    hx-trigger="input changed delay:500ms, search" hx-target="#guildes" />
+            </div>
+            <div class="grid" style="margin:auto;" x-data="{validated:{enabled:false,val:false}}">
+                <div>
+                    <label :style="!validated.enabled && 'cursor: not-allowed;'">
+                        <span class="primary">Validated</span>
+                        <input type="checkbox" is="boolean-checkbox" name="validated" hx-get="/guildes"
+                            hx-trigger="input" hx-target="#guildes" hx-push-url="true" :disabled="!validated.enabled"
+                            x-model="validated.val">
+                    </label>
+                    <input type="checkbox" role="switch" x-model="validated.enabled">
+                </div>
+            </div>
+            {{template "display-guildes" .}}
     </main>
 </body>
 
@@ -43,7 +52,7 @@
     <tfoot>
         <tr>
             <td colspan="7" style="text-align: center;" x-data="{ open: false }">
-                <a class="secondary" style="cursor: pointer;text-decoration: none;" @click="open = true">➕ Create</a>
+                <a style="cursor: pointer;text-decoration: none;" @click="open = true">➕ Create</a>
                 {{template "create-guilde" .}}
             </td>
         </tr>
@@ -76,7 +85,7 @@
     <td>{{ GetDateForTemplate .Creation_date }}</td>
     <td><button class="outline" hx-get="/guildes/edit/{{.Uuid}}" hx-target="closest tr"
             hx-swap="outerHTML">Edit</button></td>
-    <td><button class="outline pico-color-red-450" hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?"
+    <td><button class="outline danger" hx-delete="/guildes/{{.Uuid}}" hx-confirm="Delete {{.Name}} ?"
             hx-target="closest tr" hx-swap="outerHTML swap:1s">Delete</button></td>
 </tr>
 {{end}}
@@ -96,7 +105,7 @@
     <td><input name="creation-date" type="date" value="{{ GetDateForTemplate .Creation_date }}"></td>
     <td><button class="outline" hx-patch="/guildes/{{.Uuid}}" hx-confirm="Save changes ?" hx-target="closest tr"
             hx-swap="outerHTML" hx-include="closest tr">Save</button></td>
-    <td><button class="outline" hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr"
+    <td><button class="outline danger" hx-get="/guildes/row/{{.Uuid}}" hx-target="closest tr"
             hx-swap="outerHTML">Cancel</button></td>
 </tr>
 {{end}}
@@ -110,7 +119,7 @@
                 <h2>Create Guilde</h2>
             </header>
             <section>
-                <form hx-post="/guildes" hx-swap="beforebegin" hx-encoding='multipart/form-data'
+                <form hx-post="/guildes" hx-swap="beforebegin" hx-encoding="multipart/form-data"
                     x-data="{ progress: 0 }"
                     @htmx:xhr:progress="(evt) => {progress = evt.detail.loaded/evt.detail.total * 100}"
                     @htmx:after-request="if (event.detail.successful) {$el.reset(); progress = 0}">
@@ -134,7 +143,7 @@
                     <progress x-show="progress > 0" id='progress' :value=progress max='100'></progress>
 
                     <footer>
-                        <button type="submit" class="outline contrast">Submit</button>
+                        <button type="submit" class="outline">Submit</button>
                     </footer>
                 </form>
             </section>

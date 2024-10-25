@@ -116,40 +116,49 @@ func getRowGuilde(c echo.Context) error {
 }
 func patchGuilde(c echo.Context) error {
 	uuid, err := uuid.Parse(c.Param("uuid"))
-	name := c.FormValue("name")
-	creationDate := c.FormValue("creation-date")
-	validated := c.FormValue("validated")
-	// exists := c.FormValue("exists")
-	// active := c.FormValue("active")
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse path parameter")
 	}
-	var command commands.UpdateGuildeCommand
-	command.Name = name
-	command.Uuid = uuid
-	creationDateParsed, err := time.Parse("2006-01-02", creationDate)
+	name := c.FormValue("name")
+	creationDate := c.FormValue("creation-date")
+	validated := c.FormValue("validated")
+	exists := c.FormValue("exists")
+	active := c.FormValue("active")
+
+	var parsedCreationDate time.Time
+	if creationDate != "" {
+		parsedCreationDate, err = time.Parse("2006-01-02", creationDate)
+		if err != nil {
+			c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+			return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+		}
+	} else {
+		parsedCreationDate = time.Time{}
+	}
+	parsedActive, err := strconv.ParseBool(active)
 	if err != nil {
 		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
 	}
-	// parsedActive, err :=  strconv.ParseBool(active)
-	// if err != nil {
-	// 	c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
-	// 	return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
-	// }
-	// parsedExists, err :=  strconv.ParseBool(exists)
-	// if err != nil {
-	// 	c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
-	// 	return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
-	// }
-	command.CreationDate = creationDateParsed
-
+	parsedExists, err := strconv.ParseBool(exists)
+	if err != nil {
+		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
+	}
 	validatedBool, err := strconv.ParseBool(validated)
 	if err != nil {
 		c.Logger().Error(fmt.Sprintf("Error while parsing form value: %s", err))
 		return echo.NewHTTPError(http.StatusBadRequest, "Failed to parse form value")
 	}
+
+	var command commands.UpdateGuildeCommand
+	command.Name = name
+	command.Uuid = uuid
+	command.CreationDate = parsedCreationDate
 	command.Validated = &validatedBool
+	command.Exists = &parsedExists
+	command.Active = &parsedActive
+
 	updatedG, err := serviceManager.UpdateGuildeHandler(command)
 	if err != nil {
 		code, message := utils.ErrorCodeMapper(err, utils.PutMethod)

@@ -1,0 +1,19 @@
+@use "pico" with (
+  $theme-color: "amber"
+);
+@use "settings" as *;
+@use "colors" as *;
+
+// Outline (danger)
+#{$parent-selector} :is(button, [type="submit"], [type="button"], [role="button"]).outline.danger,
+[type="reset"].outline {
+  #{$css-var-prefix}background-color: transparent;
+  #{$css-var-prefix}color: $red-600;
+  #{$css-var-prefix}border-color: $red-600;
+
+  &:is([aria-current]:not([aria-current="false"]), :hover, :activ e, :focus) {
+    #{$css-var-prefix}background-color: transparent;
+    #{$css-var-prefix}color: $red-500;
+    #{$css-var-prefix}border-color: $red-500;
+  }
+}

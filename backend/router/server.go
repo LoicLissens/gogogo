@@ -1,10 +1,15 @@
 package router
 
 import (
+	"context"
 	"embed"
 	"html/template"
 	"io"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"jiva-guildes/backend"
 	"jiva-guildes/backend/router/api"
@@ -72,5 +77,30 @@ func Serve() {
 	e.GET("/", func(c echo.Context) error {
 		return c.Render(http.StatusOK, "index.html", map[string]interface{}{"lang": "en", "title": "Index gogogo"})
 	})
-	e.Logger.Fatal(e.Start(":1323"))
+
+	defer func() {
+		e.Logger.Info("Teardown") //TODO add teardown
+	}()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	ch := make(chan error, 1)
+	go func() {
+		err := e.Start(":1323")
+		if err != nil {
+			ch <- err
+		}
+		close(ch)
+	}()
+
+	select {
+	case err := <-ch:
+		e.Logger.Error(err) // if serv wont start
+	case <-ctx.Done():
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := e.Shutdown(ctx); err != nil {
+			e.Logger.Fatal(err)
+		}
+	}
 }

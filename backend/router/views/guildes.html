@@ -8,10 +8,10 @@
             <p style="text-align: center;">Filters</p>
             <div x-data="{searching : false}" :aria-busy="searching" @htmx:before-request="searching = true"
                 @htmx:after-request="searching = false">
-                <input type="search" name="name" placeholder="Search..." hx-get="/guildes"
+                <input type="search" name="name" placeholder="Search by name..." hx-get="/guildes"
                     hx-trigger="input changed delay:500ms, search" hx-target="#guildes" />
             </div>
-            <div class="grid" style="margin:auto;" x-data="{validated:{enabled:false,val:false}}">
+            <div class="grid" style="margin:auto;" x-data="{validated:{enabled:false,val:false},exists:{enabled:false,val:false}}">
                 <div>
                     <label :style="!validated.enabled && 'cursor: not-allowed;'">
                         <span class="primary">Validated</span>
@@ -20,6 +20,15 @@
                             x-model="validated.val">
                     </label>
                     <input type="checkbox" role="switch" x-model="validated.enabled">
+                </div>
+                <div>
+                    <label :style="!exists.enabled && 'cursor: not-allowed;'">
+                        <span class="primary">Exists</span>
+                        <input type="checkbox" is="boolean-checkbox" name="exists" hx-get="/guildes"
+                            hx-trigger="input" hx-target="#guildes" hx-push-url="true" :disabled="!exists.enabled"
+                            x-model="exists.val">
+                    </label>
+                    <input type="checkbox" role="switch" x-model="exists.enabled">
                 </div>
             </div>
             {{template "display-guildes" .}}

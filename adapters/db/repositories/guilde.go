@@ -27,7 +27,15 @@ func (repository *GuildeRepository) GetByUUID(uuid uuid.UUID) (guilde.Guilde, er
 	}
 	return entity, nil
 }
-
+func (repository *GuildeRepository) GetAll() ([]guilde.Guilde, error) {
+	rows := GetAllEntities(repository.db, tableName)
+	defer rows.Close()
+	entities, err := repository.ScanRows(rows)
+	if err != nil {
+		return entities, fmt.Errorf("error while fetching entities %w", db.HandleSQLErrors(err, tableName))
+	}
+	return entities, nil
+}
 func (repository *GuildeRepository) Save(entity guilde.Guilde) (guilde.Guilde, error) {
 	table := tables.NewGuildeTable(entity)
 	savedEntity, err := repository.ScanRow(SaveEntity(table, repository.db))
@@ -52,6 +60,20 @@ func (repository *GuildeRepository) ScanRow(row pgx.Row) (guilde.Guilde, error) 
 		return entity, err
 	}
 	return entity, nil
+}
+
+func (repository *GuildeRepository) ScanRows(rows pgx.Rows) ([]guilde.Guilde, error) {
+	var entities []guilde.Guilde
+
+	for rows.Next() {
+		entity := guilde.Guilde{}
+		err := rows.Scan(&entity.Uuid, &entity.Created_at, &entity.Updated_at, &entity.Name, &entity.Img_url, &entity.Page_url, &entity.Exists, &entity.Validated, &entity.Active, &entity.Creation_date)
+		if err != nil {
+			return entities, err
+		}
+		entities = append(entities, entity)
+	}
+	return entities, nil
 }
 func (repository *GuildeRepository) Update(entity guilde.Guilde) (guilde.Guilde, error) {
 	table := tables.NewGuildeTable(entity)

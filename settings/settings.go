@@ -17,6 +17,8 @@ type Settings struct {
 	DATABASE_SCHEMA     string `env:"DATABASE_SCHEMA"`
 	DEFAULT_PAGE_LIMIT  int    `env:"DEFAULT_PAGE_LIMIT" envDefault:"10"`
 	DEFAULT_PAGE        int    `env:"DEFAULT_PAGE" envDefault:"1"`
+	IMG_FOLDER          string `env:"IMG_FOLDER"`
+	BUCKET_API_KEY      string `env:"BUCKET_API_KEY"`
 }
 
 var AppSettings *Settings

@@ -216,3 +216,6 @@ func TestUpdateNotFound(t *testing.T) {
 		t.Fatal("Expected ErrorNotFound, got", reflect.TypeOf(err))
 	}
 }
+func TestGetAll(t *testing.T) {
+	retun
+}

@@ -11,4 +11,5 @@ type GuildeRepository interface {
 	Save(guilde.Guilde) (guilde.Guilde, error)
 	Delete(uuid uuid.UUID) error
 	Update(guilde.Guilde) (guilde.Guilde, error)
+	GetAll() ([]guilde.Guilde, error)
 }

@@ -24,7 +24,7 @@ import (
 //go:embed views/*.html
 var tmplFS embed.FS
 
-//go:embed all:static
+//go:embed all:static/embeded
 var assetsFS embed.FS
 
 type (

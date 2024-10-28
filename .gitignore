@@ -6,3 +6,5 @@ node_modules
 bun.lockb
 dump copy.sql
 guildes.csv
+err.txt
+imgs

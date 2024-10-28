@@ -5,7 +5,7 @@ export default defineConfig({
     rollupOptions: {
       input: 'main.js',
       output: {
-        dir: '../backend/router/static',
+        dir: '../backend/router/static/embeded',
         entryFileNames: 'main.js',
         format: 'es',
       },

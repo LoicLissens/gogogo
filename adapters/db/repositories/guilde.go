@@ -32,7 +32,7 @@ func (repository *GuildeRepository) GetAll() ([]guilde.Guilde, error) {
 	defer rows.Close()
 	entities, err := repository.ScanRows(rows)
 	if err != nil {
-		return entities, fmt.Errorf("error while fetching entities %w", db.HandleSQLErrors(err, tableName))
+		return entities, fmt.Errorf("error while fetching entities %w", err)
 	}
 	return entities, nil
 }

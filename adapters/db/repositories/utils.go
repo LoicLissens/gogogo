@@ -21,7 +21,14 @@ func GetEntityByUuid(db db.PsqlDB, uuid uuid.UUID, tableName string) pgx.Row {
 
 	return row
 }
-
+func GetAllEntities(db db.PsqlDB, tableName string) pgx.Rows {
+	statement := fmt.Sprintf("SELECT * FROM %s", tableName)
+	rows, err := db.Query(context.Background(), statement)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return rows
+}
 func SaveEntity(table tables.Table, db db.PsqlDB) pgx.Row {
 	tableFields, values := tables.DeepFields(table)
 	fields := ""

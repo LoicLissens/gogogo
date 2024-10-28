@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"jiva-guildes/adapters/db"
 	"jiva-guildes/adapters/db/tables"
+	"jiva-guildes/adapters/db/test_utils"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models"
 	"jiva-guildes/domain/models/guilde"
+	corerepo "jiva-guildes/domain/ports/repositories"
 	"jiva-guildes/settings"
 	"reflect"
 	"testing"
@@ -16,11 +18,11 @@ import (
 	"github.com/google/uuid"
 )
 
-func setupTest(tb testing.TB) (GuildeRepository, func(tb testing.TB)) {
+func setupTest(tb testing.TB) (corerepo.GuildeRepository, func(tb testing.TB)) {
 	tables.InitAllTables()
 	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
-	var repo GuildeRepository = GuildeRepository{db: pool}
-	return repo, func(tb testing.TB) {
+	repo := NewGuildeRepository(pool)
+	return &repo, func(tb testing.TB) {
 		tables.DropAllTables()
 		db.Teardown(pool)
 	}
@@ -217,5 +219,25 @@ func TestUpdateNotFound(t *testing.T) {
 	}
 }
 func TestGetAll(t *testing.T) {
-	retun
+	repo, teardownTest := setupTest(t)
+	defer teardownTest(t)
+	samples := test_utils.SaveBasicSamples(repo)
+	guildes, err := repo.GetAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(guildes) != len(samples) {
+		t.Fatalf("Expected %d, got %d", len(samples), len(guildes))
+	}
+}
+func TestGetAllEmptyDB(t *testing.T) {
+	repo, teardownTest := setupTest(t)
+	defer teardownTest(t)
+	guildes, err := repo.GetAll()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(guildes) != 0 {
+		t.Fatalf("Expected %d, got %d", 0, len(guildes))
+	}
 }

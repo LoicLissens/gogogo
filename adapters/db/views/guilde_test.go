@@ -5,6 +5,7 @@ import (
 	"jiva-guildes/adapters"
 	"jiva-guildes/adapters/db"
 	"jiva-guildes/adapters/db/tables"
+	"jiva-guildes/adapters/db/test_utils"
 	customerrors "jiva-guildes/domain/custom_errors"
 	"jiva-guildes/domain/models/guilde"
 	"jiva-guildes/domain/ports"
@@ -34,46 +35,14 @@ func setupTest(tb testing.TB) (ports.UnitOfWorkManager, views.ViewsManager, func
 	}
 }
 
-func createGuilde(uowm ports.UnitOfWorkManager, opts guilde.GuildeOptions) guilde.Guilde {
-	uow, close := uowm.Start()
-	defer close()
-	g, err := guilde.New(opts)
-	if err != nil {
-		panic(err)
-	}
-	savedGuilde, err := uow.GuildeRepository().Save(*g)
-	if err != nil {
-		panic(err)
-	}
-	return savedGuilde
-}
-func saveBatchSamples(uowm ports.UnitOfWorkManager, samples []guilde.GuildeOptions) []guilde.GuildeOptions {
-
-	for _, sample := range samples {
-		createGuilde(uowm, sample)
-	}
-	return samples
-}
-func saveBasicSamples(uowm ports.UnitOfWorkManager) []guilde.GuildeOptions {
-	active := true
-	notActive := false
-	today := time.Now().UTC()
-	date := time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC)
-	samples := []guilde.GuildeOptions{
-		{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil},
-		{Name: "D12", Page_url: "img1", Exists: true, Validated: true, Active: nil, Creation_date: nil},
-		{Name: "eminem", Exists: true, Validated: true, Active: &active, Creation_date: &today},
-		{Name: "AS$AP", Page_url: "img3", Exists: false, Validated: false, Active: &notActive, Creation_date: &date},
-	}
-	return saveBatchSamples(uowm, samples)
-}
-
 // TESTS
 func TestFetchGuilde(t *testing.T) {
 	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
+	uow, close := uowm.Start()
 
-	g := createGuilde(uowm, guilde.GuildeOptions{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil})
+	g := test_utils.CreateGuilde(uow.GuildeRepository(), guilde.GuildeOptions{Name: "GUnit", Page_url: "https://www.googleimage.com", Exists: true, Validated: true, Active: nil, Creation_date: nil})
+	close() // commit
 	fetchedGuilde, err := ViewsManager.Guilde().Fetch(g.Uuid)
 	if err != nil {
 		t.Fatal(err)
@@ -117,8 +86,9 @@ func TestFetchGuildeNotFound(t *testing.T) {
 func TestListGuildes(t *testing.T) {
 	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
-
-	samples := saveBasicSamples(uowm)
+	uow, close := uowm.Start()
+	samples := test_utils.SaveBasicSamples(uow.GuildeRepository())
+	close()
 	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{Page: 1,
 		Limit: 10})
 	if err != nil {
@@ -130,6 +100,9 @@ func TestListGuildes(t *testing.T) {
 	guildes := fetchedGuildes.Items
 	if len(guildes) != len(samples) {
 		t.Fatalf("Expected %d, got %d", len(samples), len(guildes))
+	}
+	for i, j := 0, len(samples)-1; i < j; i, j = i+1, j-1 { // Reverse samples to match ordering
+		samples[i], samples[j] = samples[j], samples[i]
 	}
 	for i, guilde := range guildes {
 		if guilde.Name != samples[i].Name {
@@ -175,8 +148,10 @@ func TestListGuildes(t *testing.T) {
 func TestListGuildesOrdering(t *testing.T) {
 	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
+	uow, close := uowm.Start()
 
-	saveBasicSamples(uowm)
+	test_utils.SaveBasicSamples(uow.GuildeRepository())
+	close()
 	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{OrderingMethod: views.DESC, OrderBy: views.OrderByName})
 	if err != nil {
 		t.Fatal(err)
@@ -188,8 +163,10 @@ func TestListGuildesOrdering(t *testing.T) {
 func TestListGuildesWithFilters(t *testing.T) {
 	uowm, ViewsManager, teardownTest := setupTest(t)
 	defer teardownTest(t)
+	uow, close := uowm.Start()
 
-	saveBasicSamples(uowm)
+	test_utils.SaveBasicSamples(uow.GuildeRepository())
+	close()
 	// Filter by name
 	fetchedGuildes, err := ViewsManager.Guilde().List(views.ListGuildesViewOpts{Name: "min"})
 	if err != nil {

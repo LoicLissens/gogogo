@@ -71,7 +71,6 @@ func main() {
 		}
 		defer file.Close()
 
-		// Copy the response body to the file
 		_, err = io.Copy(file, resp.Body)
 		if err != nil {
 			fmt.Println("Error saving image:", err)

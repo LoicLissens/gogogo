@@ -19,6 +19,7 @@ type Settings struct {
 	DEFAULT_PAGE        int    `env:"DEFAULT_PAGE" envDefault:"1"`
 	IMG_FOLDER          string `env:"IMG_FOLDER"`
 	BUCKET_API_KEY      string `env:"BUCKET_API_KEY"`
+	DB_DUMP_FOLDER      string `env:"DB_DUMP_FOLDER"`
 }
 
 var AppSettings *Settings

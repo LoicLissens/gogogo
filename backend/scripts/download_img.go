@@ -1,4 +1,4 @@
-package main
+package scripts
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ func findImgUrl(slice []string, pathString string) bool {
 	return false
 }
 
-func main() {
+func run() {
 	pool := db.MountDB(settings.AppSettings.DATABASE_URI)
 	defer db.Teardown(pool)
 	repo := repositories.NewGuildeRepository(pool)

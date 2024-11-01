@@ -1,6 +1,5 @@
 .env
 /tmp
-dump.sql
 .DS_Store
 node_modules
 bun.lockb

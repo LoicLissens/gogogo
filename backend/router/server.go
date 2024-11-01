@@ -75,11 +75,20 @@ func Serve() {
 	api.InitGuildeApiRoutes(e)
 	routes.InitGuildeRoutes(e)
 	e.GET("/", func(c echo.Context) error {
-		return c.Render(http.StatusOK, "index.html", map[string]interface{}{"lang": "en", "title": "Index gogogo"})
+		return c.Render(http.StatusOK, "index.html", map[string]interface{}{"lang": "en", "title": "Gogogo"})
 	})
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		code := http.StatusInternalServerError
+		if he, ok := err.(*echo.HTTPError); ok {
+			code = he.Code
+		}
+		if code == http.StatusNotFound {
+			c.Render(http.StatusNotFound, "404.html", map[string]interface{}{"lang": "en", "title": "404"})
+		}
+	}
 
 	defer func() {
-		e.Logger.Info("Teardown") //TODO add teardown
+		e.Logger.Info("Teardown") //TODO add teardown and pass ctx
 	}()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

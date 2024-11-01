@@ -1,4 +1,4 @@
-package main
+package scripts
 
 import (
 	"fmt"
@@ -36,7 +36,7 @@ func PopulateDBFromCSV() {
 		if err != nil {
 			panic(err)
 		}
-		repo.Save(*g) // may need bulk insert later
+		repo.Save(*g)
 		i++
 	}
 	fmt.Printf("Inserted %d records\n", i)
